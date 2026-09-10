@@ -35,9 +35,10 @@ class LocalDB {
 
   static Future<void> setBalance(int b) async {
     _balance = b;
+    if (_balance < 0) _balance = 0;
     try {
       final sp = await SharedPreferences.getInstance();
-      await sp.setInt('balance', b);
+      await sp.setInt('balance', _balance);
     } catch (_) {}
   }
 
@@ -48,6 +49,18 @@ class LocalDB {
       final sp = await SharedPreferences.getInstance();
       await sp.setInt('balance', _balance);
     } catch (_) {}
+  }
+
+  /// Bakiye degistirir. Yetersizse false doner.
+  static Future<bool> changeBalance(int amount, [String reason = '']) async {
+    if (amount < 0 && _balance + amount < 0) return false;
+    _balance = _balance + amount;
+    if (_balance < 0) _balance = 0;
+    try {
+      final sp = await SharedPreferences.getInstance();
+      await sp.setInt('balance', _balance);
+    } catch (_) {}
+    return true;
   }
 
   static Future<void> clear() async {

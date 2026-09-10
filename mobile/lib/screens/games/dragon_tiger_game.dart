@@ -95,7 +95,7 @@ class _DragonTigerGameState extends State<DragonTigerGame>
       _history.insert(0, winner == 'dragon' ? 'D' : winner == 'tiger' ? 'T' : 'X');
       if (_history.length > 10) _history.removeLast();
     });
-    await await LocalDB.setBalance(_balance);
+    await LocalDB.setBalance(_balance);
 
     await Future.delayed(const Duration(seconds: 2));
     _flipCtrl.reset();
