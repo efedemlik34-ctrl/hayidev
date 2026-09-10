@@ -22,12 +22,6 @@ class AppTheme {
     dividerColor: Colors.white12,
     snackBarTheme: const SnackBarThemeData(
       backgroundColor: darkCard, contentTextStyle: TextStyle(color: Colors.white)),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: primary, foregroundColor: Colors.black,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
   );
 
   static ThemeData light() => ThemeData(
@@ -42,11 +36,5 @@ class AppTheme {
     cardColor: lightCard,
     dialogBackgroundColor: lightCard,
     dividerColor: Colors.black12,
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: primary, foregroundColor: Colors.black,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
   );
 }

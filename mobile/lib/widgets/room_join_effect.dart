@@ -13,7 +13,6 @@ class RoomJoinEffect extends StatefulWidget {
 class _RoomJoinEffectState extends State<RoomJoinEffect> with TickerProviderStateMixin {
   late AnimationController _slideCtrl;
   late AnimationController _fadeCtrl;
-  final rand = math.Random();
 
   @override
   void initState() {
