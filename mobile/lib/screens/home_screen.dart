@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_text.dart';
 import '../services/api.dart';
 import '../services/offline_cache.dart';
 import '../widgets/app_theme.dart';
@@ -111,9 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text('Merhaba,',
                         style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 12)),
-                      Text(_user?['username']?.toString() ?? 'Kullanici',
+                      Flexible(child: Text(_user?['username']?.toString() ?? 'Kullanici',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: Colors.black,
-                          fontSize: 18, fontWeight: FontWeight.bold)),
+                          fontSize: 18, fontWeight: FontWeight.bold))),
                     ],
                   )),
                   Container(
@@ -133,9 +135,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('🪙 ${_fmt(_user?['balance'])}',
-                    style: const TextStyle(color: Colors.black,
-                      fontSize: 32, fontWeight: FontWeight.bold)),
+                  FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft,
+                    child: Text('🪙 ${_fmt(_user?['balance'])}',
+                      style: const TextStyle(color: Colors.black,
+                        fontSize: 32, fontWeight: FontWeight.bold)))
                   const SizedBox(width: 12),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),

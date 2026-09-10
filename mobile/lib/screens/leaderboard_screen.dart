@@ -118,6 +118,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(child: Text(u['username']?.toString() ?? '',
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: top3 ? Colors.black : Colors.white,
                         fontWeight: FontWeight.bold, fontSize: 14))),
@@ -126,10 +127,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         color: top3 ? Colors.black : const Color(0xFFFFC107),
                         size: 14),
                       const SizedBox(width: 4),
-                      Text('$bal',
+                      FittedBox(fit: BoxFit.scaleDown, child: Text('$bal',
                         style: TextStyle(
                           color: top3 ? Colors.black : const Color(0xFFFFC107),
-                          fontWeight: FontWeight.bold, fontSize: 13)),
+                          fontWeight: FontWeight.bold, fontSize: 13))),
                     ]),
                   ]),
                 );

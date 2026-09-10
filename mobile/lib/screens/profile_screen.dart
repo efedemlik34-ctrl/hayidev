@@ -102,10 +102,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 14),
               Text(_user!['username']?.toString() ?? '',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white,
                   fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               Text(_user!['email']?.toString() ?? '-',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Colors.white54, fontSize: 12)),
               const SizedBox(height: 16),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
