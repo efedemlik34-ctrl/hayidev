@@ -27,7 +27,7 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
   late AnimationController _enterCtrl;
   late AnimationController _particleCtrl;
   late AnimationController _fadeCtrl;
-  late AnimationController _shakeCtrl;
+  late AnimationController _shineCtrl;
   final rand = math.Random();
   late List<_P> particles;
 
@@ -40,11 +40,10 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
       duration: const Duration(seconds: 4))..repeat();
     _fadeCtrl = AnimationController(vsync: this,
       duration: const Duration(milliseconds: 700));
-    _shakeCtrl = AnimationController(vsync: this,
-      duration: const Duration(milliseconds: 200))..repeat(reverse: true);
+    _shineCtrl = AnimationController(vsync: this,
+      duration: const Duration(seconds: 2))..repeat();
 
-    final count = widget.gift.tier >= 4 ? 80
-      : widget.gift.tier >= 3 ? 50 : 30;
+    final count = widget.gift.tier >= 4 ? 80 : widget.gift.tier >= 3 ? 50 : 30;
     particles = List.generate(count, (_) => _P(
       x: rand.nextDouble(), y: rand.nextDouble(),
       dx: (rand.nextDouble() - 0.5) * 2,
@@ -73,7 +72,7 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
   Future<void> _run() async {
     await _enterCtrl.forward();
     await Future.delayed(Duration(milliseconds: widget.gift.tier >= 4 ? 3200 : 2200));
-    await _fadeCtrl.forward();
+    if (mounted) await _fadeCtrl.forward();
     await Future.delayed(const Duration(milliseconds: 200));
     widget.onComplete();
   }
@@ -83,7 +82,7 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
     _enterCtrl.dispose();
     _particleCtrl.dispose();
     _fadeCtrl.dispose();
-    _shakeCtrl.dispose();
+    _shineCtrl.dispose();
     super.dispose();
   }
 
@@ -103,7 +102,6 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Premium ise arka plan karartma + radial gradient
               if (isPremium)
                 Container(
                   decoration: BoxDecoration(
@@ -116,7 +114,6 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
                     ),
                   ),
                 ),
-              // Medium/premium particle efekti
               if (isMedium)
                 ...particles.map((p) {
                   final pt = _particleCtrl.value;
@@ -143,14 +140,12 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
                   );
                 }),
 
-              // Ana gorsel
               Center(
                 child: Transform.scale(
                   scale: 0.2 + t * 0.85,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // x50 jackpot rozeti
                       if (widget.gift.isJackpot)
                         Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -171,7 +166,6 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
                               letterSpacing: 2)),
                         ),
 
-                      // Hediye gorsel/emoji
                       if (isPremium)
                         Container(
                           width: 220, height: 220,
@@ -179,13 +173,13 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
                             shape: BoxShape.circle,
                             gradient: RadialGradient(
                               colors: [
-                                Color(0xFFFFD700).withOpacity(0.3),
+                                const Color(0xFFFFD700).withOpacity(0.3),
                                 Colors.transparent,
                               ],
                             ),
                           ),
                           child: Center(child: Text(_emojiFor(widget.gift.key),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 160,
                               shadows: [
                                 Shadow(color: Color(0xFFFFD700), blurRadius: 40),
@@ -198,20 +192,19 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
                         Text(_emojiFor(widget.gift.key),
                           style: TextStyle(
                             fontSize: widget.gift.tier >= 3 ? 130 : 100,
-                            shadows: isMedium ? [
+                            shadows: isMedium ? const [
                               Shadow(color: Colors.amber, blurRadius: 30),
                             ] : null,
                           )),
 
                       const SizedBox(height: 20),
 
-                      // Sender
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: isPremium
-                              ? [Color(0xFFFFD700), Color(0xFFFF6B35)]
+                              ? [const Color(0xFFFFD700), const Color(0xFFFF6B35)]
                               : [Colors.purple, Colors.deepPurple],
                           ),
                           borderRadius: BorderRadius.circular(28),
@@ -234,13 +227,12 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
 
                       const SizedBox(height: 10),
 
-                      // Hediye adi + adet
                       Text('${widget.gift.name} x${widget.quantity}',
                         style: TextStyle(
-                          color: isPremium ? Color(0xFFFFD700) : Colors.white,
+                          color: isPremium ? const Color(0xFFFFD700) : Colors.white,
                           fontSize: isPremium ? 24 : 20,
                           fontWeight: FontWeight.bold,
-                          shadows: isPremium ? [
+                          shadows: isPremium ? const [
                             Shadow(color: Color(0xFFFF6B35), blurRadius: 20),
                           ] : null,
                         )),
@@ -254,16 +246,15 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
                 ),
               ),
 
-              // Premium shine efekti
               if (isPremium)
                 Positioned.fill(
                   child: AnimatedBuilder(
-                    animation: _shakeCtrl,
+                    animation: _shineCtrl,
                     builder: (_, __) => Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          begin: Alignment(-1 + _shakeCtrl.value * 2, -1),
-                          end: Alignment(1, 1),
+                          begin: Alignment(-1 + _shineCtrl.value * 2, -1),
+                          end: const Alignment(1, 1),
                           colors: [
                             Colors.transparent,
                             Colors.white.withOpacity(0.08),
@@ -308,7 +299,6 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
     if (key.contains('rainbow')) return '🌈';
     if (key.contains('fire')) return '🔥';
     if (key.contains('ice')) return '❄️';
-    if (key.contains('sansli')) return '⭐';
     if (key.contains('lucky')) return '🐤';
     return '🎁';
   }

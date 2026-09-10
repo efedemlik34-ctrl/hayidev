@@ -48,35 +48,30 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
   }
 
   @override
-  void dispose() {
-    _tabs.dispose();
-    super.dispose();
-  }
+  void dispose() { _tabs.dispose(); super.dispose(); }
 
   int get _total => _selected == null ? 0 : _selected!.price * _quantity;
 
   Future<void> _send() async {
     if (_selected == null) return;
-    if (_total > _myBalance) {
+    if (_total > _myBalance && _total > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Yetersiz bakiye'), backgroundColor: Colors.red));
       return;
     }
-
     setState(() => _sending = true);
     try {
-      // Backend'e gonder
       await Api.dio.post('/gifts/send', data: {
         'receiverId': widget.receiverId ?? 1,
         'giftKey': _selected!.key,
         'quantity': _quantity,
         'roomId': widget.roomId,
       });
-
-      // Animasyon goster
+      final gift = _selected!;
+      final qty = _quantity;
       if (mounted) {
-        Navigator.pop(context); // Sheet'i kapat
-        _showGiftAnimation();
+        Navigator.pop(context);
+        _showAnimation(gift, qty);
       }
     } catch (e) {
       if (mounted) {
@@ -88,14 +83,14 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
     }
   }
 
-  void _showGiftAnimation() {
+  void _showAnimation(GiftItem gift, int qty) {
     final overlay = Overlay.of(context);
     late OverlayEntry entry;
     entry = OverlayEntry(builder: (_) => PremiumGiftAnimation(
-      gift: _selected!,
+      gift: gift,
       senderName: LocalDB.getUser()['username'] ?? 'Sen',
       receiverName: widget.receiverName ?? 'Oda',
-      quantity: _quantity,
+      quantity: qty,
       onComplete: () => entry.remove(),
     ));
     overlay.insert(entry);
@@ -115,15 +110,12 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(children: [
-        // ─── Top handle ───
         Container(
           margin: const EdgeInsets.only(top: 10),
           width: 40, height: 4,
           decoration: BoxDecoration(
             color: Colors.white24, borderRadius: BorderRadius.circular(2)),
         ),
-
-        // ─── Kategori tab'lari ───
         Container(
           margin: const EdgeInsets.symmetric(vertical: 12),
           child: TabBar(
@@ -137,8 +129,6 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
               Tab(text: c['name'])).toList(),
           ),
         ),
-
-        // ─── Hediye grid ───
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -152,8 +142,6 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
             itemBuilder: (_, i) => _giftTile(gifts[i]),
           ),
         ),
-
-        // ─── Alt bar: bakiye + adet + gonder ───
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: const BoxDecoration(
@@ -163,7 +151,6 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
           child: SafeArea(
             top: false,
             child: Row(children: [
-              // Bakiye
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -177,30 +164,9 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
                   Text('$_myBalance',
                     style: const TextStyle(color: Colors.black,
                       fontWeight: FontWeight.bold, fontSize: 12)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right, color: Colors.black, size: 14),
-                ]),
-              ),
-              const SizedBox(width: 8),
-
-              // Join butonu
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFC107).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFFFC107).withOpacity(0.4)),
-                ),
-                child: const Row(children: [
-                  Icon(Icons.workspace_premium, color: Color(0xFFFFC107), size: 12),
-                  SizedBox(width: 4),
-                  Text('Join', style: TextStyle(color: Color(0xFFFFC107),
-                    fontWeight: FontWeight.bold, fontSize: 11)),
                 ]),
               ),
               const Spacer(),
-
-              // Adet secici
               Container(
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.4),
@@ -215,7 +181,7 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
                     padding: EdgeInsets.zero,
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Text('$_quantity',
                       style: const TextStyle(color: Colors.white,
                         fontSize: 14, fontWeight: FontWeight.bold)),
@@ -229,8 +195,6 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
                 ]),
               ),
               const SizedBox(width: 8),
-
-              // Gonder
               GestureDetector(
                 onTap: _selected == null || _sending ? null : _send,
                 child: Container(
@@ -263,8 +227,7 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
         decoration: BoxDecoration(
           gradient: isSel
             ? const LinearGradient(
-                colors: [Color(0xFFFFC107), Color(0xFFFF8C00)],
-                begin: Alignment.topLeft, end: Alignment.bottomRight)
+                colors: [Color(0xFFFFC107), Color(0xFFFF8C00)])
             : const LinearGradient(
                 colors: [Color(0xFF1A0F3E), Color(0xFF0F0A2E)]),
           borderRadius: BorderRadius.circular(12),
@@ -277,7 +240,6 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
             : null,
         ),
         child: Stack(children: [
-          // Jackpot badge
           if (g.isJackpot)
             Positioned(top: 2, left: 2,
               child: Container(
@@ -289,20 +251,7 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
                 ),
                 child: const Text('JACKPOT',
                   style: TextStyle(color: Colors.white, fontSize: 6,
-                    fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-              ),
-            ),
-          // Yesil kutu badge
-          if (g.isJackpot)
-            Positioned(top: 2, right: 2,
-              child: Container(
-                width: 12, height: 12,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF4CAF50),
-                  shape: BoxShape.circle),
-                child: const Center(child: Text('+',
-                  style: TextStyle(color: Colors.white, fontSize: 9,
-                    fontWeight: FontWeight.bold))),
+                    fontWeight: FontWeight.bold)),
               ),
             ),
           Padding(
@@ -360,14 +309,25 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
     if (key.contains('balloon')) return '🎈';
     if (key.contains('rose')) return '🌹';
     if (key.contains('heart')) return '❤️';
+    if (key.contains('ring')) return '💍';
+    if (key.contains('teddy')) return '🧸';
+    if (key.contains('love_letter')) return '💌';
+    if (key.contains('bayragi')) return '🇹🇷';
+    if (key.contains('bozkurt')) return '🐺';
+    if (key.contains('hilal')) return '🌙';
     if (key.contains('crown') || key.contains('king')) return '👑';
     if (key.contains('castle')) return '🏰';
+    if (key.contains('throne')) return '🪑';
     if (key.contains('dragon')) return '🐉';
     if (key.contains('phoenix')) return '🔥';
     if (key.contains('lion')) return '🦁';
     if (key.contains('galaxy') || key.contains('universe')) return '🌌';
-    if (key.contains('ring')) return '💍';
-    if (key.contains('teddy')) return '🧸';
+    if (key.contains('clover')) return '🍀';
+    if (key.contains('777')) return '7️⃣';
+    if (key.contains('rainbow')) return '🌈';
+    if (key.contains('fire')) return '🔥';
+    if (key.contains('ice')) return '❄️';
+    if (key.contains('lucky')) return '🐤';
     return '🎁';
   }
 }
