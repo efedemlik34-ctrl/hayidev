@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/api.dart';
+import 'services/socket.dart';
 import 'screens/social_login_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -52,6 +53,13 @@ import 'screens/leaderboard_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Api.init();
+  // Socket baslatilirsa baglanir
+  try {
+    final token = await Api.getToken();
+    if (token != null) {
+      SocketService.connect(token);
+    }
+  } catch (_) {}
   runApp(const HayiDevApp());
 }
 

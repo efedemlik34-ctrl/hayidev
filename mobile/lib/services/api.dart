@@ -1,3 +1,4 @@
+import 'socket.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,14 +15,21 @@ class Api {
     }));
   }
   static bool hasToken() => _token != null;
+  static Future<String?> getToken() async => _token;
   static Future<void> setToken(String t) async {
     _token = t;
     final p = await SharedPreferences.getInstance();
     await p.setString('token', t);
+    try {
+      SocketService.connect(t);
+    } catch (_) {}
   }
   static Future<void> logout() async {
     _token = null;
     final p = await SharedPreferences.getInstance();
     await p.remove('token');
+    try {
+      SocketService.disconnect();
+    } catch (_) {}
   }
 }
