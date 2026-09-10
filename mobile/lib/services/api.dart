@@ -27,7 +27,7 @@ class Api {
     }
     dio.interceptors.add(InterceptorsWrapper(
       onError: (e, handler) {
-        print('[API] ' + e.requestOptions.path + ' - ' + e.message);
+        print('[API] ' + e.requestOptions.path + ' - ' + (e.message ?? 'bilinmeyen'));
         handler.next(e);
       },
     ));
@@ -46,6 +46,11 @@ class Api {
     final sp = await SharedPreferences.getInstance();
     await sp.remove('token');
   }
+
+  static String? getToken() => _token;
+
+  static bool hasToken() => _token != null && _token!.isNotEmpty;
+
 
   static Future<dynamic> getWithCache(String path) async {
     final r = await dio.get(path);

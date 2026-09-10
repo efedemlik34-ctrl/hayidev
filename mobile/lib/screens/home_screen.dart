@@ -143,6 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text('💎 ${_fmt(_user?['diamonds'])}',
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: Colors.black.withOpacity(0.7),
                         fontSize: 16, fontWeight: FontWeight.bold)),
                   ),

@@ -18,6 +18,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await Api.init();
+    super.initState();
     _scaleCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..forward();
     _glowCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
     _rotateCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat();
