@@ -31,99 +31,62 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # 1. Eski android klasoru varsa sil — temiz flutter create icin
-      - name: Clean android folder
-        working-directory: mobile
-        run: |
-          if [ -d "android" ]; then
-            rm -rf android
-          fi
-          if [ -d "ios" ]; then
-            rm -rf ios
-          fi
-
-      # 2. pubspec.yaml'i yedekle (flutter create eziyor)
       - name: Backup pubspec
         working-directory: mobile
         run: cp pubspec.yaml /tmp/pubspec.backup.yaml
 
-      # 3. Flutter create — temiz v2 embedding android olustur
+      - name: Clean android
+        working-directory: mobile
+        run: rm -rf android ios
+
       - name: Create platform files
         working-directory: mobile
-        run: |
-          flutter create --org com.hayidev --project-name hayi --platforms=android --overwrite .
+        run: flutter create --org com.hayidev --project-name hayi --platforms=android .
 
-      # 4. pubspec.yaml'i geri yukle
       - name: Restore pubspec
         working-directory: mobile
         run: cp /tmp/pubspec.backup.yaml pubspec.yaml
 
-      # 5. AndroidManifest.xml v2 embedding zorla
       - name: Fix AndroidManifest v2 embedding
         working-directory: mobile
         run: |
-          MANIFEST=android/app/src/main/AndroidManifest.xml
-          echo "=== ÖNCE ==="
-          cat $MANIFEST
-          # v1 -> v2 fix
-          sed -i 's|android:name="io.flutter.app.FlutterApplication"|android:name="${applicationName}"|g' $MANIFEST
-          # flutterEmbedding meta-data ekle (yoksa)
-          if ! grep -q 'flutterEmbedding' $MANIFEST; then
-            sed -i 's|</application>|        <meta-data android:name="flutterEmbedding" android:value="2" />\n    </application>|' $MANIFEST
+          MF=android/app/src/main/AndroidManifest.xml
+          echo "=== ONCE ==="
+          cat $MF
+          sed -i 's|android:name="io.flutter.app.FlutterApplication"|android:name="\${applicationName}"|g' $MF
+          if ! grep -q 'flutterEmbedding' $MF; then
+            sed -i 's|</application>|<meta-data android:name="flutterEmbedding" android:value="2" />\n    </application>|' $MF
           fi
           echo "=== SONRA ==="
-          cat $MANIFEST
+          cat $MF
 
-      # 6. MainActivity.kt kontrol
       - name: Fix MainActivity
         working-directory: mobile
         run: |
           MK=android/app/src/main/kotlin/com/hayidev/hayi/MainActivity.kt
-          if [ -f "$MK" ]; then
-            cat > $MK << 'EOF'
-package com.hayidev.hayi
+          mkdir -p android/app/src/main/kotlin/com/hayidev/hayi
+          echo 'package com.hayidev.hayi' > $MK
+          echo '' >> $MK
+          echo 'import io.flutter.embedding.android.FlutterActivity' >> $MK
+          echo '' >> $MK
+          echo 'class MainActivity : FlutterActivity()' >> $MK
+          echo "MainActivity.kt yazildi:"
+          cat $MK
 
-import io.flutter.embedding.android.FlutterActivity
-
-class MainActivity : FlutterActivity()
-EOF
-            echo "MainActivity.kt v2 embedding olarak yazildi"
-          fi
-
-      # 7. App label guncelle
       - name: Update app label
         working-directory: mobile
-        run: |
-          sed -i 's/android:label="[^"]*"/android:label="Hayi"/' android/app/src/main/AndroidManifest.xml || true
+        run: sed -i 's/android:label="[^"]*"/android:label="Hayi"/' android/app/src/main/AndroidManifest.xml || true
 
-      # 8. Ikon/splash config
       - name: Ensure icon config
         working-directory: mobile
         run: |
-          cat > flutter_launcher_icons.yaml << 'EOF'
-          flutter_launcher_icons:
-            android: true
-            ios: false
-            image_path: "assets/icon/app_icon.png"
-            adaptive_icon_background: "#0A3D1E"
-            adaptive_icon_foreground: "assets/icon/app_icon.png"
-            min_sdk_android: 23
-          EOF
-          cat > flutter_native_splash.yaml << 'EOF'
-          flutter_native_splash:
-            color: "#0A3D1E"
-            image: "assets/icon/app_icon.png"
-            android: true
-            ios: false
-            fullscreen: true
-          EOF
+          printf 'flutter_launcher_icons:\n  android: true\n  ios: false\n  image_path: "assets/icon/app_icon.png"\n  adaptive_icon_background: "#0A3D1E"\n  adaptive_icon_foreground: "assets/icon/app_icon.png"\n  min_sdk_android: 23\n' > flutter_launcher_icons.yaml
+          printf 'flutter_native_splash:\n  color: "#0A3D1E"\n  image: "assets/icon/app_icon.png"\n  android: true\n  ios: false\n  fullscreen: true\n' > flutter_native_splash.yaml
 
-      # 9. Bagimliliklar
       - name: Get dependencies
         working-directory: mobile
         run: flutter pub get
 
-      # 10. Ikon/splash olustur
       - name: Generate launcher icons
         working-directory: mobile
         run: flutter pub run flutter_launcher_icons
@@ -134,14 +97,12 @@ EOF
         run: flutter pub run flutter_native_splash:create
         continue-on-error: true
 
-      # 11. APK build
       - name: Build APK
         working-directory: mobile
         run: flutter build apk --release
         env:
           GRADLE_OPTS: '-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false'
 
-      # 12. Artifact yukle
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
