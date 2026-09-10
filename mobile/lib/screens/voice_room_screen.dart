@@ -179,17 +179,6 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
     );
   }
 
-  void _openGiftSheet(int receiverId) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => GiftBottomSheet(
-        roomId: widget.roomId, seats: _seats, preselectedReceiverId: receiverId,
-        onSent: (gift) => _showGiftAnim(gift),
-      ),
-    );
-  }
 
   void _showGiftAnim(Map<String, dynamic> gift) {
     showDialog(context: context, barrierDismissible: false, barrierColor: Colors.black54,
@@ -200,14 +189,14 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
   }
 
 
-  void _openGiftSheet() {
+  void _openGiftSheet([int? receiverId]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => GiftCatalogSheet(
         roomId: widget.roomId,
-        receiverId: 1,
+        receiverId: receiverId ?? 1,
         receiverName: widget.roomName,
         balance: LocalDB.getBalance(),
       ),
