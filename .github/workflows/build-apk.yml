@@ -17,25 +17,76 @@ jobs:
           flutter-version: '3.22.0'
           channel: stable
           cache: true
+
+      # 1. Platform dosyalarini olustur
       - name: Create platform files
         working-directory: mobile
-        run: flutter create --org com.hayidev --project-name hayi --platforms=android .
+        run: |
+          flutter create --org com.hayidev --project-name hayi --platforms=android .
+          # flutter create pubspec.yaml'i sifirlayabilir, kontrol et
+          if ! grep -q 'assets/icon' pubspec.yaml; then
+            echo '' >> pubspec.yaml
+            echo 'flutter:' >> pubspec.yaml
+            echo '  uses-material-design: true' >> pubspec.yaml
+            echo '  assets:' >> pubspec.yaml
+            echo '    - assets/icon/' >> pubspec.yaml
+          fi
+
+      # 2. Bagimliliklari kur
       - name: Get dependencies
         working-directory: mobile
         run: flutter pub get
+
+      # 3. Ikon config'i garantiye al
+      - name: Ensure icon config
+        working-directory: mobile
+        run: |
+          cat > flutter_launcher_icons.yaml << 'EOF'
+          flutter_launcher_icons:
+            android: true
+            ios: false
+            image_path: "assets/icon/app_icon.png"
+            adaptive_icon_background: "#0A3D1E"
+            adaptive_icon_foreground: "assets/icon/app_icon.png"
+            min_sdk_android: 23
+          EOF
+          cat > flutter_native_splash.yaml << 'EOF'
+          flutter_native_splash:
+            color: "#0A3D1E"
+            image: "assets/icon/app_icon.png"
+            android: true
+            ios: false
+            fullscreen: true
+            android_12:
+              image: "assets/icon/app_icon.png"
+              icon_background_color: "#0A3D1E"
+              color: "#0A3D1E"
+          EOF
+
+      # 4. Ikon olustur
       - name: Generate launcher icons
         working-directory: mobile
         run: flutter pub run flutter_launcher_icons
+        continue-on-error: true
+
+      # 5. Splash olustur
       - name: Generate splash screen
         working-directory: mobile
         run: flutter pub run flutter_native_splash:create
+        continue-on-error: true
+
+      # 6. Uygulama ismini guncelle
       - name: Update app label
         working-directory: mobile
         run: |
           sed -i 's/android:label="[^"]*"/android:label="Hayi"/' android/app/src/main/AndroidManifest.xml || true
+
+      # 7. APK derle
       - name: Build APK
         working-directory: mobile
         run: flutter build apk --release
+
+      # 8. Yukle
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
