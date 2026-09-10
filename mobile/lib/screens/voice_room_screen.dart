@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../widgets/room_chat_widget.dart';
+import 'room_settings_screen.dart';
 import '../services/api.dart';
 import '../services/local_db.dart';
 import '../widgets/gift_catalog_sheet.dart';
@@ -201,6 +203,28 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
         balance: LocalDB.getBalance(),
       ),
     );
+  }
+
+
+  void _openChat() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.65,
+        child: RoomChatWidget(roomId: widget.roomId),
+      ),
+    );
+  }
+
+  void _openSettings() {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => RoomSettingsScreen(
+        roomId: widget.roomId,
+        roomName: widget.roomName,
+      ),
+    ));
   }
 
   @override
