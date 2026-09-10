@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -45,9 +45,50 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      - name: Backup custom files
+        working-directory: ./mobile
+        run: |
+          mkdir -p /tmp/custom_backup
+          if [ -f android/gradle.properties ]; then cp android/gradle.properties /tmp/custom_backup/; fi
+          if [ -f android/app/google-services.json ]; then cp android/app/google-services.json /tmp/custom_backup/; fi
+          if [ -f android/key.properties ]; then cp android/key.properties /tmp/custom_backup/; fi
+
+      - name: Delete broken android folder
+        working-directory: ./mobile
+        run: rm -rf android
+
+      - name: Regenerate android folder (flutter create)
+        working-directory: ./mobile
+        run: flutter create --platforms=android --org com.hayidev --project-name hayidev .
+
+      - name: Restore custom files
+        working-directory: ./mobile
+        run: |
+          if [ -f /tmp/custom_backup/gradle.properties ]; then cp /tmp/custom_backup/gradle.properties android/; fi
+          if [ -f /tmp/custom_backup/google-services.json ]; then cp /tmp/custom_backup/google-services.json android/app/; fi
+          if [ -f /tmp/custom_backup/key.properties ]; then cp /tmp/custom_backup/key.properties android/; fi
+
+      - name: Add gradle optimizations
+        working-directory: ./mobile
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1g" >> android/gradle.properties
+          echo "org.gradle.parallel=true" >> android/gradle.properties
+          echo "org.gradle.caching=true" >> android/gradle.properties
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
+
       - name: Flutter pub get
         working-directory: ./mobile
         run: flutter pub get
+
+      - name: Verify AndroidManifest exists
+        working-directory: ./mobile
+        run: |
+          echo "=== AndroidManifest.xml ==="
+          cat android/app/src/main/AndroidManifest.xml
+          echo ""
+          echo "=== MainActivity ==="
+          find android -name "MainActivity.*" -exec cat {} \;
 
       - name: Build APK
         working-directory: ./mobile
