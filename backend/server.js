@@ -628,6 +628,15 @@ io.on('connection', (socket) => {
 try { require('./systems18.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
 catch (e) { console.error('[systems18] hata:', e.message); }
 
+
+// Tam sistemler (audio + bracket + live)
+try { require('./systems_audio.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
+catch (e) { console.error('[systems_audio] hata:', e.message); }
+try { require('./systems_bracket.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
+catch (e) { console.error('[systems_bracket] hata:', e.message); }
+try { require('./systems_live.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
+catch (e) { console.error('[systems_live] hata:', e.message); }
+
 srv.listen(PORT, async () => {
   const a = db.prepare('SELECT id FROM users WHERE is_admin = 1').get();
   if (!a) {
