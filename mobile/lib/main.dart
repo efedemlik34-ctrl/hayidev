@@ -14,6 +14,7 @@ import 'screens/onboarding_screen.dart';
 import 'screens/social_login_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/main_nav_screen.dart';
 import 'screens/games_screen.dart';
 import 'screens/gifts_screen.dart';
 import 'screens/vip_screen.dart';
@@ -96,12 +97,13 @@ class HayiDevApp extends StatelessWidget {
       initialRoute: '/splash',
       routes: {
         '/splash': (_) => const SplashScreen(),
+        '/main-nav': (_) => const MainNavScreen(),
         '/onboarding': (_) => OnboardingScreen(
               onComplete: () => Navigator.pushReplacementNamed(context, '/'),
             ),
         '/': (_) => const SocialLoginScreen(),
         '/email-login': (_) => const LoginScreen(),
-        '/home': (_) => const HomeScreen(),
+        '/home': (_) => const MainNavScreen(),
         '/games': (_) => const GamesScreen(),
         '/gifts': (_) => const GiftsScreen(),
         '/vip': (_) => const VipScreen(),

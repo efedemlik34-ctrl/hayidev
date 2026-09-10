@@ -7,72 +7,26 @@ class LeaderboardScreen extends StatefulWidget {
   State<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
-class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabs;
-  List _weekly = [], _monthly = [], _points = [], _spenders = [];
+class _LeaderboardScreenState extends State<LeaderboardScreen> {
+  List _lb = [];
+  int _tab = 0;
+  final _tabs = ['Haftalik', 'Aylik', 'Genel'];
 
   @override
-  void initState() {
-    super.initState();
-    _tabs = TabController(length: 4, vsync: this);
-    _load();
-  }
-
-  @override
-  void dispose() { _tabs.dispose(); super.dispose(); }
+  void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     try {
-      final w = await Api.dio.get('/leaderboard/weekly');
-      final m = await Api.dio.get('/leaderboard/monthly');
-      final p = await Api.dio.get('/leaderboard/points');
-      final s = await Api.dio.get('/leaderboard/spenders');
-      setState(() { _weekly = w.data; _monthly = m.data; _points = p.data; _spenders = s.data; });
-    } catch (e) { debugPrint(e.toString()); }
+      final path = _tab == 0 ? '/leaderboard/weekly'
+        : _tab == 1 ? '/leaderboard/monthly'
+        : '/leaderboard';
+      final r = await Api.dio.get(path);
+      setState(() => _lb = r.data);
+    } catch (_) {}
   }
 
-  Widget _list(List items, String valueKey, String valuePrefix) {
-    if (items.isEmpty) return const Center(child: Text('Veri yok', style: TextStyle(color: Colors.white38)));
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: items.length,
-      itemBuilder: (_, i) {
-        final u = items[i];
-        final top3 = i < 3;
-        final colors = [
-          [const Color(0xFFFFD700), const Color(0xFFFFA000)],
-          [const Color(0xFFC0C0C0), const Color(0xFF9E9E9E)],
-          [const Color(0xFFCD7F32), const Color(0xFF8B4513)]
-        ];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: top3 ? LinearGradient(colors: colors[i]) : null,
-            color: top3 ? null : Colors.white10,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(children: [
-            Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                color: top3 ? Colors.black.withOpacity(0.2) : Colors.white10,
-                shape: BoxShape.circle),
-              child: Center(child: Text('${i + 1}',
-                style: TextStyle(color: top3 ? Colors.black : Colors.white70,
-                  fontWeight: FontWeight.bold, fontSize: 15))),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(u['username'] ?? '',
-              style: TextStyle(color: top3 ? Colors.black : Colors.white,
-                fontWeight: FontWeight.bold, fontSize: 15))),
-            Text('$valuePrefix${u[valueKey] ?? 0}',
-              style: TextStyle(color: top3 ? Colors.black : Color(0xFFFFC107),
-                fontWeight: FontWeight.bold, fontSize: 13)),
-          ]),
-        );
-      },
-    );
+  int _fmt(dynamic n) {
+    try { return int.parse(n.toString()); } catch (_) { return 0; }
   }
 
   @override
@@ -81,30 +35,108 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTicker
       backgroundColor: const Color(0xFF0A0E27),
       appBar: AppBar(
         title: const Text('Liderlik Tablosu'),
-        backgroundColor: Colors.transparent, elevation: 0,
-        bottom: TabBar(
-          controller: _tabs,
-          labelColor: const Color(0xFFFFC107),
-          unselectedLabelColor: Colors.white54,
-          indicatorColor: const Color(0xFFFFC107),
-          isScrollable: true,
-          tabs: const [
-            Tab(text: 'Haftalik'),
-            Tab(text: 'Aylik'),
-            Tab(text: 'Puan'),
-            Tab(text: 'Harcama'),
-          ],
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+      ),
+      body: Column(children: [
+        // Tab
+        Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(children: List.generate(_tabs.length, (i) {
+            final isSel = _tab == i;
+            return Expanded(child: GestureDetector(
+              onTap: () { setState(() => _tab = i); _load(); },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: isSel
+                    ? const LinearGradient(colors: [Color(0xFFFFC107), Color(0xFFFF6B35)])
+                    : null,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(child: Text(_tabs[i],
+                  style: TextStyle(color: isSel ? Colors.black : Colors.white60,
+                    fontWeight: FontWeight.bold, fontSize: 12))),
+              ),
+            ));
+          })),
         ),
-      ),
-      body: TabBarView(
-        controller: _tabs,
-        children: [
-          _list(_weekly, 'won', '🪙 '),
-          _list(_monthly, 'won', '🪙 '),
-          _list(_points, 'xp', '⭐ '),
-          _list(_spenders, 'spent', '💎 '),
-        ],
-      ),
+        // Liste
+        Expanded(child: _lb.isEmpty
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFFC107)))
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: _lb.length,
+              itemBuilder: (_, i) {
+                final u = _lb[i];
+                final top3 = i < 3;
+                final colors = [
+                  [const Color(0xFFFFD700), const Color(0xFFFFA000)],
+                  [const Color(0xFFC0C0C0), const Color(0xFF9E9E9E)],
+                  [const Color(0xFFCD7F32), const Color(0xFF8B4513)],
+                ];
+                final medals = ['🥇', '🥈', '🥉'];
+                final bal = _fmt(u['balance'] ?? u['won'] ?? 0);
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: top3
+                      ? LinearGradient(colors: colors[i])
+                      : null,
+                    color: top3 ? null : Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(14),
+                    border: top3
+                      ? null
+                      : Border.all(color: Colors.white.withOpacity(0.08)),
+                  ),
+                  child: Row(children: [
+                    SizedBox(width: 36,
+                      child: top3
+                        ? Text(medals[i], style: const TextStyle(fontSize: 22))
+                        : Text('${i + 1}',
+                            style: const TextStyle(color: Colors.white70,
+                              fontWeight: FontWeight.bold, fontSize: 16))),
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: top3
+                        ? Colors.black.withOpacity(0.2)
+                        : const Color(0xFF2A1F5E),
+                      child: Text(
+                        (u['username']?.toString() ?? '?')[0].toUpperCase(),
+                        style: TextStyle(
+                          color: top3 ? Colors.black : const Color(0xFFFFC107),
+                          fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(u['username']?.toString() ?? '',
+                      style: TextStyle(
+                        color: top3 ? Colors.black : Colors.white,
+                        fontWeight: FontWeight.bold, fontSize: 14))),
+                    Row(children: [
+                      Icon(Icons.monetization_on,
+                        color: top3 ? Colors.black : const Color(0xFFFFC107),
+                        size: 14),
+                      const SizedBox(width: 4),
+                      Text('$bal',
+                        style: TextStyle(
+                          color: top3 ? Colors.black : const Color(0xFFFFC107),
+                          fontWeight: FontWeight.bold, fontSize: 13)),
+                    ]),
+                  ]),
+                );
+              },
+            ),
+        ),
+      ]),
     );
   }
 }

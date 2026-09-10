@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     if (!onboardingDone) {
       Navigator.pushReplacementNamed(context, '/onboarding');
     } else if (Api.hasToken()) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/main-nav');
     } else {
       Navigator.pushReplacementNamed(context, '/');
     }
