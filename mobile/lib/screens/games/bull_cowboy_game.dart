@@ -83,7 +83,7 @@ class _BullCowboyGameState extends State<BullCowboyGame> {
       _rolling = false;
       _round++;
     });
-    await LocalDB.setBalance(_balance);
+    await await LocalDB.setBalance(_balance);
 
     await Future.delayed(const Duration(seconds: 3));
     setState(() {

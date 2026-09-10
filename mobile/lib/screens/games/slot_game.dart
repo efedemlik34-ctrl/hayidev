@@ -74,7 +74,7 @@ class _SlotGameState extends State<SlotGame> {
       _balance += win;
       _spinning = false;
     });
-    await LocalDB.setBalance(_balance);
+    await await LocalDB.setBalance(_balance);
   }
 
   @override
