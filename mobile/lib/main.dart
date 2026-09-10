@@ -60,23 +60,31 @@ void main() async {
       SocketService.connect(token);
     }
   } catch (_) {}
-  runApp(const HayiDevApp());
+  final themeProvider = ThemeProvider();
+  await themeProvider.init();
+  await FeedbackService.init();
+  runApp(ChangeNotifierProvider.value(value: themeProvider, child: const HayiDevApp()));
 }
 
 class HayiDevApp extends StatelessWidget {
   const HayiDevApp({super.key});
   @override
   Widget build(BuildContext context) {
+    final tp = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'Hayi',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: tp.mode,
+      _oldTheme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF0A0E27),
         primaryColor: const Color(0xFFFFC107),
       ),
       initialRoute: Api.hasToken() ? '/home' : '/',
       routes: {
+        '/onboarding': (_) => OnboardingScreen(onComplete: () => Navigator.pushReplacementNamed(context, '/')),
         '/': (_) => const SocialLoginScreen(),
         '/email-login': (_) => const LoginScreen(),
         '/home': (_) => const HomeScreen(),
