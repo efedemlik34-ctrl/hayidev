@@ -182,7 +182,8 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
 
   Widget _giftTile(GiftItem g) {
     final isSel = _selected?.key == g.key;
-    return GestureDetector(onTap: () => setState(() => _selected = g),
+    return GestureDetector(
+      onTap: () => setState(() => _selected = g),
       child: AnimatedContainer(duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           gradient: isSel

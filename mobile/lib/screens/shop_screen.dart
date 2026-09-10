@@ -105,7 +105,7 @@ class _ShopScreenState extends State<ShopScreen> {
       itemCount: _coins.length,
       itemBuilder: (_, i) {
         final p = _coins[i];
-        return GestureDetector(onTap: () => _buy('coin_${p['c']}'),
+        return GestureDetector(onTap: () => _buy('coin_${p["c"]}'),
           child: Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -172,7 +172,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 const Text('Hediye ve ozel icin',
                   style: TextStyle(color: Colors.white54, fontSize: 11)),
               ])),
-            GestureDetector(onTap: () => _buy('dia_${p['d']}'),
+            GestureDetector(onTap: () => _buy('dia_${p["d"]}'),
               child: Container(padding: const EdgeInsets.symmetric(
                   horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
