@@ -71,7 +71,7 @@ module.exports = function(ctx) {
   // 46: Behavior Analytics
   app.get('/api/analytics/behavior/:userId?', auth, (req, res) => {
     const uid = parseInt(req.params.userId) || req.uid;
-    const g = db.prepare("SELECT COUNT(*) FILTER (WHERE type = 'bet') AS bets, COUNT(*) FILTER (WHERE amount > 0) AS wins FROM tx WHERE user_id = ?").get(uid);
+    const g = db.prepare("SELECT COUNT(*) FILTER (WHERE type = \'bet\') AS bets, COUNT(*) FILTER (WHERE amount > 0) AS wins FROM tx WHERE user_id = ?").get(uid);
     const msgs = db.prepare('SELECT COUNT(*) AS c FROM messages WHERE user_id = ?').get(uid).c;
     const winRate = g.bets > 0 ? Math.round(g.wins / g.bets * 100) : 0;
     let seg = 'newbie';

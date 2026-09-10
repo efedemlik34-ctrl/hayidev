@@ -16,7 +16,7 @@ module.exports = function(ctx) {
 
   app.post('/api/live/start', auth, (req, res) => {
     const { title, category } = req.body;
-    const active = db.prepare("SELECT id FROM live_streams WHERE host_id = ? AND status = 'live'").get(req.uid);
+    const active = db.prepare("SELECT id FROM live_streams WHERE host_id = ? AND status = \'live\'").get(req.uid);
     if (active) return res.status(400).json({ error: 'ALREADY_LIVE' });
     const r = db.prepare('INSERT INTO live_streams (host_id, title) VALUES (?, ?)').run(req.uid, title || 'Canli Yayin');
     const stream = db.prepare('SELECT * FROM live_streams WHERE id = ?').get(r.lastInsertRowid);
@@ -25,7 +25,7 @@ module.exports = function(ctx) {
   });
 
   app.get('/api/live/active', auth, (req, res) => {
-    const rows = db.prepare("SELECT l.*, u.username, u.vip, u.frame FROM live_streams l JOIN users u ON u.id = l.host_id WHERE l.status = 'live' ORDER BY l.viewers DESC LIMIT 50").all();
+    const rows = db.prepare("SELECT l.*, u.username, u.vip, u.frame FROM live_streams l JOIN users u ON u.id = l.host_id WHERE l.status = \'live\' ORDER BY l.viewers DESC LIMIT 50").all();
     res.json(rows);
   });
 

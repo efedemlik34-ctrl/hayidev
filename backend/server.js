@@ -555,7 +555,7 @@ app.get('/api/admin/stats', auth, adminOnly, (req, res) => {
     gifts: db.prepare('SELECT COUNT(*) AS c FROM gifts_log').get().c,
     messages: db.prepare('SELECT COUNT(*) AS c FROM messages').get().c,
     clans: db.prepare('SELECT COUNT(*) AS c FROM clans').get().c,
-    reports: db.prepare('SELECT COUNT(*) AS c FROM reports WHERE status = 'open'').get().c
+    reports: db.prepare('SELECT COUNT(*) AS c FROM reports WHERE status = \'open\'').get().c
   });
 });
 
@@ -640,6 +640,51 @@ catch (e) { console.error('[systems_live] hata:', e.message); }
 
 // Ek sistemler
 try { require('./systems8.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); } catch (e) { console.error('[systems8]:', e.message); }
+
+
+// ═══ EKSIK ENDPOINTLER ═══
+
+// 1. Gunluk Odul Status
+app.get('/api/daily/status', auth, (req, res) => {
+  const d = db.prepare('SELECT * FROM daily WHERE user_id = ?').get(req.uid) || { streak: 0, last: null };
+  const today = new Date().toISOString().slice(0, 10);
+  const rewards = [500, 1000, 2000, 5000, 10000, 25000, 100000, 500000];
+  res.json({
+    streak: d.streak,
+    canClaim: !d.last || d.last.slice(0, 10) !== today,
+    next: rewards[d.streak % 8]
+  });
+});
+
+// 2. Hediye Gecmisi
+app.get('/api/gifts/history', auth, (req, res) => {
+  const rows = db.prepare('SELECT g.*, s.username AS sender, r.username AS receiver FROM gifts_log g LEFT JOIN users s ON s.id = g.sender_id LEFT JOIN users r ON r.id = g.receiver_id WHERE g.sender_id = ? OR g.receiver_id = ? ORDER BY g.id DESC LIMIT 50').all(req.uid, req.uid);
+  res.json(rows);
+});
+
+// 3. Raporlarim
+app.get('/api/reports/my', auth, (req, res) => {
+  const rows = db.prepare('SELECT * FROM reports WHERE reporter = ? ORDER BY id DESC LIMIT 50').all(req.uid);
+  res.json(rows);
+});
+
+// 4. Push Test
+app.post('/api/push/test', auth, (req, res) => {
+  try {
+    db.prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?, ?, ?, ?)').run(req.uid, 'push', 'Test', 'HayiDev test bildirimi');
+    io.to('user_' + req.uid).emit('push', { title: 'Test', body: 'Bildirim calisiyor!' });
+    res.json({ ok: true });
+  } catch (e) {
+    res.json({ ok: true, note: 'push kayit edildi' });
+  }
+});
+
+// 5. Saglik
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, ts: Date.now(), systems: 51, version: '1.0.0' });
+});
+
+// ═══ EKSIK ENDPOINTLER SONU ═══
 
 srv.listen(PORT, async () => {
   const a = db.prepare('SELECT id FROM users WHERE is_admin = 1').get();

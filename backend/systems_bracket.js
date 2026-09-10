@@ -109,7 +109,7 @@ module.exports = function(ctx) {
   const addWarPoints = (uid, points) => {
     const cm = db.prepare('SELECT clan_id FROM clan_members WHERE user_id = ? LIMIT 1').get(uid);
     if (!cm) return;
-    const war = db.prepare("SELECT * FROM clan_wars WHERE (clan1 = ? OR clan2 = ?) AND status = 'active' ORDER BY id DESC LIMIT 1").get(cm.clan_id, cm.clan_id);
+    const war = db.prepare("SELECT * FROM clan_wars WHERE (clan1 = ? OR clan2 = ?) AND status = \'active\' ORDER BY id DESC LIMIT 1").get(cm.clan_id, cm.clan_id);
     if (!war) return;
     if (war.clan1 === cm.clan_id) {
       db.prepare('UPDATE clan_wars SET score1 = score1 + ? WHERE id = ?').run(points, war.id);
@@ -120,7 +120,7 @@ module.exports = function(ctx) {
   };
 
   app.post('/api/clans/war/start', auth, (req, res) => {
-    const my = db.prepare("SELECT clan_id FROM clan_members WHERE user_id = ? AND role = 'owner'").get(req.uid);
+    const my = db.prepare("SELECT clan_id FROM clan_members WHERE user_id = ? AND role = \'owner\'").get(req.uid);
     if (!my) return res.status(403).json({ error: 'NOT_OWNER' });
     const enemy = parseInt(req.body.enemyClanId);
     if (!enemy || enemy === my.clan_id) return res.status(400).json({ error: 'INVALID' });
@@ -129,7 +129,7 @@ module.exports = function(ctx) {
   });
 
   app.get('/api/clans/:id/war', auth, (req, res) => {
-    const war = db.prepare("SELECT * FROM clan_wars WHERE (clan1 = ? OR clan2 = ?) AND status = 'active' ORDER BY id DESC LIMIT 1").get(req.params.id, req.params.id);
+    const war = db.prepare("SELECT * FROM clan_wars WHERE (clan1 = ? OR clan2 = ?) AND status = \'active\' ORDER BY id DESC LIMIT 1").get(req.params.id, req.params.id);
     if (!war) return res.json(null);
     const c1 = db.prepare('SELECT name FROM clans WHERE id = ?').get(war.clan1)?.name || '?';
     const c2 = db.prepare('SELECT name FROM clans WHERE id = ?').get(war.clan2)?.name || '?';
