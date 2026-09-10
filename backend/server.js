@@ -686,6 +686,8 @@ app.get('/api/health', (req, res) => {
 
 // ═══ EKSIK ENDPOINTLER SONU ═══
 
+try { require('./systems_shop.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); } catch (e) { console.error('[systems_shop]', e.message); }
+
 srv.listen(PORT, async () => {
   const a = db.prepare('SELECT id FROM users WHERE is_admin = 1').get();
   if (!a) {
