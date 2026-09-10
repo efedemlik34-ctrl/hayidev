@@ -39,12 +39,16 @@ class _ShopScreenState extends State<ShopScreen> {
   Future<void> _buy(String id) async {
     try {
       await Api.dio.post('/shop/purchase', data: {'id': id});
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Satin alindi!'),
-          backgroundColor: Colors.green));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Satin alindi!'),
+            backgroundColor: Colors.green));
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$e'), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e'), backgroundColor: Colors.red));
+      }
     }
   }
 
@@ -55,7 +59,8 @@ class _ShopScreenState extends State<ShopScreen> {
       appBar: AppBar(title: const Text('Magaza'),
         backgroundColor: Colors.transparent),
       body: Column(children: [
-        Container(margin: const EdgeInsets.all(16),
+        Container(
+          margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(colors: [
@@ -66,24 +71,29 @@ class _ShopScreenState extends State<ShopScreen> {
               blurRadius: 24, offset: const Offset(0, 8))]),
           child: const Row(children: [
             Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Hos Geldin!', style: TextStyle(color: Colors.white,
-                  fontSize: 20, fontWeight: FontWeight.bold)),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Hos Geldin!', style: TextStyle(
+                  color: Colors.white, fontSize: 20,
+                  fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
                 Text('Coin ve elmas satin al', style: TextStyle(
                   color: Colors.white70, fontSize: 12)),
               ])),
             Text('🎁', style: TextStyle(fontSize: 50)),
           ])),
-        Container(margin: const EdgeInsets.symmetric(horizontal: 16),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(14)),
           child: Row(children: List.generate(_tabs.length, (i) {
             final sel = _tab == i;
             return Expanded(child: GestureDetector(
               onTap: () => setState(() => _tab = i),
-              child: Container(padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   gradient: sel ? const LinearGradient(colors: [
                     Color(0xFFFFC107), Color(0xFFFF6B35)]) : null,
@@ -97,7 +107,13 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Widget _content() {
-    if (_tab == 0) return GridView.builder(
+    if (_tab == 0) return _buildCoins();
+    if (_tab == 1) return _buildDiamonds();
+    return _buildVips();
+  }
+
+  Widget _buildCoins() {
+    return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10,
@@ -105,7 +121,12 @@ class _ShopScreenState extends State<ShopScreen> {
       itemCount: _coins.length,
       itemBuilder: (_, i) {
         final p = _coins[i];
-        return GestureDetector(onTap: () => _buy('coin_${p["c"]}'),
+        final tag = p['t'] as String;
+        final coinStr = p['c'].toString();
+        final priceStr = p['p'] as String;
+        final iconStr = p['i'] as String;
+        return GestureDetector(
+          onTap: () => _buy('coin_' + coinStr),
           child: Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -115,46 +136,57 @@ class _ShopScreenState extends State<ShopScreen> {
               border: Border.all(
                 color: const Color(0xFFFFC107).withOpacity(0.3))),
             child: Stack(children: [
-              if ((p['t'] as String).isNotEmpty) Positioned(top: 6, right: 6,
-                child: Container(padding: const EdgeInsets.symmetric(
+              if (tag.isNotEmpty) Positioned(top: 6, right: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(colors: [
                       Color(0xFFFF5252), Color(0xFFFF1744)]),
                     borderRadius: BorderRadius.circular(8)),
-                  child: Text(p['t'] as String, style: const TextStyle(
+                  child: Text(tag, style: const TextStyle(
                     color: Colors.white, fontSize: 8,
                     fontWeight: FontWeight.bold)))),
-              Padding(padding: const EdgeInsets.all(14),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center,
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(p['i'] as String, style: const TextStyle(fontSize: 44)),
+                    Text(iconStr, style: const TextStyle(fontSize: 44)),
                     const SizedBox(height: 8),
-                    Text('${p['c']}', style: const TextStyle(
+                    Text(coinStr, style: const TextStyle(
                       color: Color(0xFFFFC107), fontSize: 20,
                       fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     const Text('coin', style: TextStyle(
                       color: Colors.white60, fontSize: 10)),
                     const SizedBox(height: 10),
-                    Container(padding: const EdgeInsets.symmetric(
+                    Container(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(colors: [
                           Color(0xFF4CAF50), Color(0xFF2E7D32)]),
                         borderRadius: BorderRadius.circular(10)),
-                      child: Text(p['p'] as String, style: const TextStyle(
+                      child: Text(priceStr, style: const TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold,
                         fontSize: 12))),
                   ])),
             ]));
       });
-    if (_tab == 1) return ListView.builder(
+  }
+
+  Widget _buildDiamonds() {
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _diamonds.length,
       itemBuilder: (_, i) {
         final p = _diamonds[i];
-        return Container(margin: const EdgeInsets.only(bottom: 10),
+        final dStr = p['d'].toString();
+        final priceStr = p['p'] as String;
+        final iconStr = p['i'] as String;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: const LinearGradient(colors: [
@@ -163,59 +195,76 @@ class _ShopScreenState extends State<ShopScreen> {
             border: Border.all(
               color: const Color(0xFF4FC3F7).withOpacity(0.4))),
           child: Row(children: [
-            Text(p['i'] as String, style: const TextStyle(fontSize: 36)),
+            Text(iconStr, style: const TextStyle(fontSize: 36)),
             const SizedBox(width: 16),
             Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${p['d']} Elmas', style: const TextStyle(
-                  color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(dStr + ' Elmas', style: const TextStyle(
+                  color: Colors.white, fontSize: 18,
+                  fontWeight: FontWeight.bold)),
                 const Text('Hediye ve ozel icin',
                   style: TextStyle(color: Colors.white54, fontSize: 11)),
               ])),
-            GestureDetector(onTap: () => _buy('dia_${p["d"]}'),
-              child: Container(padding: const EdgeInsets.symmetric(
+            GestureDetector(
+              onTap: () => _buy('dia_' + dStr),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(colors: [
                     Color(0xFF4FC3F7), Color(0xFF0277BD)]),
                   borderRadius: BorderRadius.circular(12)),
-                child: Text(p['p'] as String, style: const TextStyle(
+                child: Text(priceStr, style: const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.bold,
                   fontSize: 12)))),
           ]));
       });
+  }
+
+  Widget _buildVips() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _vips.length,
       itemBuilder: (_, i) {
         final p = _vips[i];
-        return Container(margin: const EdgeInsets.only(bottom: 12),
+        final nameStr = p['n'] as String;
+        final priceStr = p['p'] as String;
+        final iconStr = p['i'] as String;
+        final colorsList = p['c'] as List<Color>;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft, end: Alignment.bottomRight,
-              colors: p['c'] as List<Color>),
+              colors: colorsList),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [BoxShadow(
-              color: (p['c'] as List<Color>)[0].withOpacity(0.4),
+              color: colorsList[0].withOpacity(0.4),
               blurRadius: 20, offset: const Offset(0, 6))]),
           child: Row(children: [
-            Text(p['i'] as String, style: const TextStyle(fontSize: 46)),
+            Text(iconStr, style: const TextStyle(fontSize: 46)),
             const SizedBox(width: 16),
             Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(p['n'] as String, style: const TextStyle(
-                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(nameStr, style: const TextStyle(
+                  color: Colors.white, fontSize: 20,
+                  fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 const Text('Reklamsiz • Ozel rozet • 2x XP',
                   style: TextStyle(color: Colors.white70, fontSize: 11)),
               ])),
-            GestureDetector(onTap: () => _buy(p['n'] as String),
-              child: Container(padding: const EdgeInsets.symmetric(
+            GestureDetector(
+              onTap: () => _buy(nameStr),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(color: Colors.black.withOpacity(0.4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(12)),
-                child: Text(p['p'] as String, style: const TextStyle(
+                child: Text(priceStr, style: const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.bold,
                   fontSize: 13)))),
           ]));
