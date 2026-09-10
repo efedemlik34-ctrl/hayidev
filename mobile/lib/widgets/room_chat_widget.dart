@@ -17,11 +17,7 @@ class _RoomChatWidgetState extends State<RoomChatWidget> {
     '🌟','💯','🎉','👍','❤️','💀','🤔','🥳'];
 
   @override
-  void initState() {
-    super.initState();
-    _load();
-    _poll();
-  }
+  void initState() { super.initState(); _load(); _poll(); }
 
   Future<void> _load() async {
     try {
@@ -70,8 +66,7 @@ class _RoomChatWidgetState extends State<RoomChatWidget> {
         color: Color(0xFF0A0E27),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       child: Column(children: [
-        Container(
-          margin: const EdgeInsets.only(top: 10),
+        Container(margin: const EdgeInsets.only(top: 10),
           width: 40, height: 4,
           decoration: BoxDecoration(color: Colors.white24,
             borderRadius: BorderRadius.circular(2))),
@@ -81,11 +76,9 @@ class _RoomChatWidgetState extends State<RoomChatWidget> {
         Expanded(child: _messages.isEmpty
           ? const Center(child: Text('Henuz mesaj yok',
               style: TextStyle(color: Colors.white54)))
-          : ListView.builder(
-              controller: _scroll,
+          : ListView.builder(controller: _scroll,
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _messages.length,
-              itemBuilder: (_, i) {
+              itemCount: _messages.length, itemBuilder: (_, i) {
                 final m = _messages[i];
                 final isMe = m['username'] == myName;
                 return Align(
@@ -97,14 +90,12 @@ class _RoomChatWidgetState extends State<RoomChatWidget> {
                       MediaQuery.of(context).size.width * 0.7),
                     decoration: BoxDecoration(
                       gradient: isMe ? const LinearGradient(colors: [
-                        Color(0xFFFFC107), Color(0xFFFF8C00)])
-                        : null,
+                        Color(0xFFFFC107), Color(0xFFFF8C00)]) : null,
                       color: isMe ? null : Colors.white.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(14)),
                     child: Column(
                       crossAxisAlignment: isMe ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
-                      children: [
+                        : CrossAxisAlignment.start, children: [
                         if (!isMe) Text(m['username']?.toString() ?? '?',
                           style: const TextStyle(color: Color(0xFFFFC107),
                             fontSize: 10, fontWeight: FontWeight.bold)),
@@ -113,35 +104,29 @@ class _RoomChatWidgetState extends State<RoomChatWidget> {
                             fontSize: 13)),
                       ])));
               })),
-        // Emoji row
         SizedBox(height: 44, child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           itemCount: _emojis.length,
           itemBuilder: (_, i) => GestureDetector(
             onTap: () => _send(_emojis[i]),
-            child: Container(
-              margin: const EdgeInsets.only(right: 6),
+            child: Container(margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(10)),
               child: Center(child: Text(_emojis[i],
                 style: const TextStyle(fontSize: 22))))))),
-        // Input
-        Container(
-          padding: const EdgeInsets.all(10),
+        Container(padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.05),
             border: const Border(top: BorderSide(color: Colors.white12))),
           child: SafeArea(top: false, child: Row(children: [
             Expanded(child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.4),
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(24)),
-              child: TextField(
-                controller: _msg,
+              child: TextField(controller: _msg,
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
                   hintText: 'Mesaj yaz...',

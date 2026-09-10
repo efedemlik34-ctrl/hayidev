@@ -9,15 +9,8 @@ class GiftCatalogSheet extends StatefulWidget {
   final int? receiverId;
   final String? receiverName;
   final int balance;
-
-  const GiftCatalogSheet({
-    super.key,
-    required this.roomId,
-    this.receiverId,
-    this.receiverName,
-    required this.balance,
-  });
-
+  const GiftCatalogSheet({super.key, required this.roomId,
+    this.receiverId, this.receiverName, required this.balance});
   @override
   State<GiftCatalogSheet> createState() => _GiftCatalogSheetState();
 }
@@ -48,10 +41,7 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
   }
 
   @override
-  void dispose() {
-    _tabs.dispose();
-    super.dispose();
-  }
+  void dispose() { _tabs.dispose(); super.dispose(); }
 
   int get _total => _selected == null ? 0 : _selected!.price * _quantity;
 
@@ -62,30 +52,22 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
         const SnackBar(content: Text('Yetersiz bakiye'), backgroundColor: Colors.red));
       return;
     }
-
     setState(() => _sending = true);
     try {
-      // Backend'e gonder
       await Api.dio.post('/gifts/send', data: {
         'receiverId': widget.receiverId ?? 1,
         'giftKey': _selected!.key,
         'quantity': _quantity,
         'roomId': widget.roomId,
       });
-
-      // Animasyon goster
       if (mounted) {
-        Navigator.pop(context); // Sheet'i kapat
+        Navigator.pop(context);
         _showGiftAnimation();
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e'), backgroundColor: Colors.red));
-      }
-    } finally {
-      if (mounted) setState(() => _sending = false);
-    }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e'), backgroundColor: Colors.red));
+    } finally { if (mounted) setState(() => _sending = false); }
   }
 
   void _showGiftAnimation() {
@@ -96,8 +78,7 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
       senderName: LocalDB.getUser()['username'] ?? 'Sen',
       receiverName: widget.receiverName ?? 'Oda',
       quantity: _quantity,
-      onComplete: () => entry.remove(),
-    ));
+      onComplete: () => entry.remove()));
     overlay.insert(entry);
   }
 
@@ -108,247 +89,162 @@ class _GiftCatalogSheetState extends State<GiftCatalogSheet>
       height: MediaQuery.of(context).size.height * 0.72,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1A0F3E), Color(0xFF0A0E27)],
-        ),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+          begin: Alignment.topCenter, end: Alignment.bottomCenter,
+          colors: [Color(0xFF1A0F3E), Color(0xFF0A0E27)]),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       child: Column(children: [
-        // ─── Top handle ───
-        Container(
-          margin: const EdgeInsets.only(top: 10),
+        Container(margin: const EdgeInsets.only(top: 10),
           width: 40, height: 4,
-          decoration: BoxDecoration(
-            color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-        ),
-
-        // ─── Kategori tab'lari ───
-        Container(
-          margin: const EdgeInsets.symmetric(vertical: 12),
-          child: TabBar(
-            controller: _tabs,
-            isScrollable: true,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white54,
-            indicatorColor: const Color(0xFFFFC107),
-            indicatorWeight: 3,
+          decoration: BoxDecoration(color: Colors.white24,
+            borderRadius: BorderRadius.circular(2))),
+        Container(margin: const EdgeInsets.symmetric(vertical: 12),
+          child: TabBar(controller: _tabs, isScrollable: true,
+            labelColor: Colors.white, unselectedLabelColor: Colors.white54,
+            indicatorColor: const Color(0xFFFFC107), indicatorWeight: 3,
             tabs: GiftCategories.categories.map((c) =>
-              Tab(text: c['name'])).toList(),
-          ),
-        ),
-
-        // ─── Hediye grid ───
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 0.78,
-            ),
-            itemCount: gifts.length,
-            itemBuilder: (_, i) => _giftTile(gifts[i]),
-          ),
-        ),
-
-        // ─── Alt bar: bakiye + adet + gonder ───
+              Tab(text: c['name'])).toList())),
+        Expanded(child: GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4, mainAxisSpacing: 8, crossAxisSpacing: 8,
+            childAspectRatio: 0.78),
+          itemCount: gifts.length,
+          itemBuilder: (_, i) => _giftTile(gifts[i]))),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: const BoxDecoration(
             color: Color(0xFF0F0A2E),
-            border: Border(top: BorderSide(color: Colors.white12)),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Row(children: [
-              // Bakiye
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            border: Border(top: BorderSide(color: Colors.white12))),
+          child: SafeArea(top: false, child: Row(children: [
+            Container(padding: const EdgeInsets.symmetric(
+                horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [
+                  Color(0xFFFFC107), Color(0xFFFF8C00)]),
+                borderRadius: BorderRadius.circular(20)),
+              child: Row(children: [
+                const Icon(Icons.monetization_on, color: Colors.black, size: 14),
+                const SizedBox(width: 4),
+                Text('$_myBalance', style: const TextStyle(
+                  color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right, color: Colors.black, size: 14),
+              ])),
+            const SizedBox(width: 8),
+            Container(padding: const EdgeInsets.symmetric(
+                horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFC107).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFFFFC107).withOpacity(0.4))),
+              child: const Row(children: [
+                Icon(Icons.workspace_premium, color: Color(0xFFFFC107), size: 12),
+                SizedBox(width: 4),
+                Text('Join', style: TextStyle(color: Color(0xFFFFC107),
+                  fontWeight: FontWeight.bold, fontSize: 11)),
+              ])),
+            const Spacer(),
+            Container(decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white24)),
+              child: Row(children: [
+                IconButton(icon: const Icon(Icons.remove, color: Colors.white70, size: 16),
+                  onPressed: () => setState(() => _quantity = _quantity > 1 ? _quantity - 1 : 1),
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  padding: EdgeInsets.zero),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text('$_quantity', style: const TextStyle(
+                    color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold))),
+                IconButton(icon: const Icon(Icons.add, color: Colors.white70, size: 16),
+                  onPressed: () => setState(() => _quantity = _quantity < 99 ? _quantity + 1 : 99),
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  padding: EdgeInsets.zero),
+              ])),
+            const SizedBox(width: 8),
+            GestureDetector(onTap: _selected == null || _sending ? null : _send,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFC107), Color(0xFFFF8C00)]),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(children: [
-                  const Icon(Icons.monetization_on, color: Colors.black, size: 14),
-                  const SizedBox(width: 4),
-                  Text('$_myBalance',
-                    style: const TextStyle(color: Colors.black,
-                      fontWeight: FontWeight.bold, fontSize: 12)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right, color: Colors.black, size: 14),
-                ]),
-              ),
-              const SizedBox(width: 8),
-
-              // Join butonu
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFC107).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFFFC107).withOpacity(0.4)),
-                ),
-                child: const Row(children: [
-                  Icon(Icons.workspace_premium, color: Color(0xFFFFC107), size: 12),
-                  SizedBox(width: 4),
-                  Text('Join', style: TextStyle(color: Color(0xFFFFC107),
-                    fontWeight: FontWeight.bold, fontSize: 11)),
-                ]),
-              ),
-              const Spacer(),
-
-              // Adet secici
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: Row(children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove, color: Colors.white70, size: 16),
-                    onPressed: () => setState(() => _quantity = _quantity > 1 ? _quantity - 1 : 1),
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                    padding: EdgeInsets.zero,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('$_quantity',
-                      style: const TextStyle(color: Colors.white,
-                        fontSize: 14, fontWeight: FontWeight.bold)),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add, color: Colors.white70, size: 16),
-                    onPressed: () => setState(() => _quantity = _quantity < 99 ? _quantity + 1 : 99),
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                    padding: EdgeInsets.zero,
-                  ),
-                ]),
-              ),
-              const SizedBox(width: 8),
-
-              // Gonder
-              GestureDetector(
-                onTap: _selected == null || _sending ? null : _send,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    gradient: _selected == null
-                      ? LinearGradient(colors: [Colors.grey.shade800, Colors.grey.shade900])
-                      : const LinearGradient(colors: [Color(0xFFFFC107), Color(0xFFFF8C00)]),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(_sending ? '...' : 'Gonder',
-                    style: TextStyle(
-                      color: _selected == null ? Colors.white38 : Colors.black,
-                      fontWeight: FontWeight.bold, fontSize: 13)),
-                ),
-              ),
-            ]),
-          ),
-        ),
-      ]),
-    );
+                  gradient: _selected == null
+                    ? LinearGradient(colors: [Colors.grey.shade800, Colors.grey.shade900])
+                    : const LinearGradient(colors: [
+                        Color(0xFFFFC107), Color(0xFFFF8C00)]),
+                  borderRadius: BorderRadius.circular(20)),
+                child: Text(_sending ? '...' : 'Gonder',
+                  style: TextStyle(
+                    color: _selected == null ? Colors.white38 : Colors.black,
+                    fontWeight: FontWeight.bold, fontSize: 13)))),
+          ]))),
+      ]));
   }
 
   Widget _giftTile(GiftItem g) {
     final isSel = _selected?.key == g.key;
-    return GestureDetector(
-      onTap: () => setState(() => _selected = g),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+    return GestureDetector(onTap: () => setState(() => _selected = g),
+      child: AnimatedContainer(duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           gradient: isSel
-            ? const LinearGradient(
-                colors: [Color(0xFFFFC107), Color(0xFFFF8C00)],
+            ? const LinearGradient(colors: [
+                Color(0xFFFFC107), Color(0xFFFF8C00)],
                 begin: Alignment.topLeft, end: Alignment.bottomRight)
-            : const LinearGradient(
-                colors: [Color(0xFF1A0F3E), Color(0xFF0F0A2E)]),
+            : const LinearGradient(colors: [
+                Color(0xFF1A0F3E), Color(0xFF0F0A2E)]),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSel ? Colors.white : const Color(0xFFFFC107).withOpacity(0.2),
             width: isSel ? 2 : 1),
-          boxShadow: isSel
-            ? [BoxShadow(color: const Color(0xFFFFC107).withOpacity(0.6),
-                blurRadius: 12, spreadRadius: 1)]
-            : null,
-        ),
+          boxShadow: isSel ? [BoxShadow(
+            color: const Color(0xFFFFC107).withOpacity(0.6),
+            blurRadius: 12, spreadRadius: 1)] : null),
         child: Stack(children: [
-          // Jackpot badge
-          if (g.isJackpot)
-            Positioned(top: 2, left: 2,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF5252), Color(0xFFFF1744)]),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text('JACKPOT',
-                  style: TextStyle(color: Colors.white, fontSize: 6,
-                    fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-              ),
-            ),
-          // Yesil kutu badge
-          if (g.isJackpot)
-            Positioned(top: 2, right: 2,
-              child: Container(
-                width: 12, height: 12,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF4CAF50),
-                  shape: BoxShape.circle),
-                child: const Center(child: Text('+',
-                  style: TextStyle(color: Colors.white, fontSize: 9,
-                    fontWeight: FontWeight.bold))),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(6),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          if (g.isJackpot) Positioned(top: 2, left: 2,
+            child: Container(padding: const EdgeInsets.symmetric(
+                horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [
+                  Color(0xFFFF5252), Color(0xFFFF1744)]),
+                borderRadius: BorderRadius.circular(4)),
+              child: const Text('JACKPOT', style: TextStyle(
+                color: Colors.white, fontSize: 6,
+                fontWeight: FontWeight.bold, letterSpacing: 0.5)))),
+          if (g.isJackpot) Positioned(top: 2, right: 2,
+            child: Container(width: 12, height: 12,
+              decoration: const BoxDecoration(
+                color: Color(0xFF4CAF50), shape: BoxShape.circle),
+              child: const Center(child: Text('+',
+                style: TextStyle(color: Colors.white, fontSize: 9,
+                  fontWeight: FontWeight.bold))))),
+          Padding(padding: const EdgeInsets.all(6),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                  child: Center(
-                    child: Image.asset(g.imagePath,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Text(
-                        _fallbackEmoji(g.key),
-                        style: const TextStyle(fontSize: 36))),
-                  ),
-                ),
+                Expanded(child: Center(child: Image.asset(g.imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Text(
+                    _fallbackEmoji(g.key),
+                    style: const TextStyle(fontSize: 36))))),
                 const SizedBox(height: 4),
-                Text(g.name,
-                  textAlign: TextAlign.center,
+                Text(g.name, textAlign: TextAlign.center,
                   maxLines: 2, overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: isSel ? Colors.black : Colors.white,
                     fontSize: 8, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 2),
-                if (g.isFree)
-                  Text('Ucretsiz',
-                    style: TextStyle(
-                      color: isSel ? Colors.black87 : const Color(0xFF4CAF50),
-                      fontSize: 8, fontWeight: FontWeight.bold))
-                else
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.monetization_on,
-                      color: isSel ? Colors.black : const Color(0xFFFFC107),
-                      size: 9),
-                    const SizedBox(width: 2),
-                    Text('${g.price}',
-                      style: TextStyle(
-                        color: isSel ? Colors.black : const Color(0xFFFFC107),
-                        fontSize: 9, fontWeight: FontWeight.bold)),
-                  ]),
-              ],
-            ),
-          ),
-        ]),
-      ),
-    );
+                if (g.isFree) Text('Ucretsiz',
+                  style: TextStyle(
+                    color: isSel ? Colors.black87 : const Color(0xFF4CAF50),
+                    fontSize: 8, fontWeight: FontWeight.bold))
+                else Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(Icons.monetization_on,
+                    color: isSel ? Colors.black : const Color(0xFFFFC107), size: 9),
+                  const SizedBox(width: 2),
+                  Text('${g.price}', style: TextStyle(
+                    color: isSel ? Colors.black : const Color(0xFFFFC107),
+                    fontSize: 9, fontWeight: FontWeight.bold)),
+                ]),
+              ])),
+        ]));
   }
 
   String _fallbackEmoji(String key) {

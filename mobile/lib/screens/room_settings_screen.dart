@@ -4,22 +4,20 @@ import '../services/api.dart';
 class RoomSettingsScreen extends StatefulWidget {
   final int roomId;
   final String roomName;
-  const RoomSettingsScreen({super.key, required this.roomId, required this.roomName});
+  const RoomSettingsScreen({super.key, required this.roomId,
+    required this.roomName});
   @override
   State<RoomSettingsScreen> createState() => _RoomSettingsScreenState();
 }
 
 class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
-  late TextEditingController _name;
-  late TextEditingController _desc;
+  late TextEditingController _name, _desc;
   bool _locked = false;
-  bool _micMuted = false;
   String _bg = 'dark_purple';
   int _maxUsers = 10;
   bool _saving = false;
-
-  final _bgs = ['dark_purple', 'fire_red', 'ocean_blue', 'emerald_green',
-    'royal_purple', 'gold_casino', 'neon_pink', 'cyber_dark'];
+  final _bgs = ['dark_purple', 'fire_red', 'ocean_blue',
+    'emerald_green', 'royal_purple', 'gold_casino'];
 
   @override
   void initState() {
@@ -33,7 +31,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
     try {
       final r = await Api.dio.get('/rooms/${widget.roomId}');
       setState(() {
-        _name.text = r.data['name'] ?? _name.text;
+        _name.text = r.data['name'] ?? widget.roomName;
         _desc.text = r.data['description'] ?? '';
         _locked = r.data['locked'] ?? false;
         _bg = r.data['background'] ?? 'dark_purple';
@@ -76,49 +74,40 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
         _field(_desc, Icons.description, maxLines: 3),
         const SizedBox(height: 16),
         _label('Maksimum Kullanici'),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: _boxDeco(),
-          child: Slider(
+        Container(padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: _boxDeco(), child: Slider(
             value: _maxUsers.toDouble(), min: 2, max: 50, divisions: 48,
             activeColor: const Color(0xFFFFC107),
             label: '$_maxUsers kisi',
-            onChanged: (v) => setState(() => _maxUsers = v.round())),
-        ),
+            onChanged: (v) => setState(() => _maxUsers = v.round()))),
         const SizedBox(height: 16),
         _label('Arka Plan'),
         SizedBox(height: 80, child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: _bgs.length,
+          scrollDirection: Axis.horizontal, itemCount: _bgs.length,
           itemBuilder: (_, i) {
-            final b = _bgs[i];
-            final sel = _bg == b;
-            return GestureDetector(
-              onTap: () => setState(() => _bg = b),
-              child: Container(
-                width: 80, margin: const EdgeInsets.only(right: 8),
+            final b = _bgs[i]; final sel = _bg == b;
+            return GestureDetector(onTap: () => setState(() => _bg = b),
+              child: Container(width: 80, margin: const EdgeInsets.only(right: 8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(colors: _bgColors(b)),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: sel ? const Color(0xFFFFC107) : Colors.white24,
+                  border: Border.all(color: sel
+                    ? const Color(0xFFFFC107) : Colors.white24,
                     width: sel ? 3 : 1)),
                 child: sel ? const Icon(Icons.check_circle,
-                  color: Color(0xFFFFC107)) : null),
-            );
+                  color: Color(0xFFFFC107)) : null));
           })),
         const SizedBox(height: 16),
         _switchTile('Oda Kilitli', 'Sadece davetliler girebilir',
           _locked, (v) => setState(() => _locked = v)),
-        _switchTile('Mikrofonlar Kapali', 'Yeni gelenler mic kapali baslar',
-          _micMuted, (v) => setState(() => _micMuted = v)),
         const SizedBox(height: 24),
         SizedBox(width: double.infinity, height: 54,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFFC107),
               foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16))),
             onPressed: _saving ? null : _save,
             child: Text(_saving ? '...' : 'KAYDET',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
@@ -134,14 +123,11 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
       'emerald_green': [const Color(0xFF052312), const Color(0xFF0F5A2D)],
       'royal_purple': [const Color(0xFF280850), const Color(0xFF6E1EA0)],
       'gold_casino': [const Color(0xFF321E05), const Color(0xFFA06414)],
-      'neon_pink': [const Color(0xFF320523), const Color(0xFF961964)],
-      'cyber_dark': [const Color(0xFF0A0C19), const Color(0xFF232D4B)],
     };
     return m[k] ?? [Colors.black, Colors.grey];
   }
 
-  Widget _label(String t) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
+  Widget _label(String t) => Padding(padding: const EdgeInsets.only(bottom: 8),
     child: Text(t.toUpperCase(), style: const TextStyle(
       color: Color(0xFFFFC107), fontSize: 11,
       fontWeight: FontWeight.bold, letterSpacing: 1.5)));
@@ -150,8 +136,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
     Container(decoration: _boxDeco(), child: TextField(
       controller: c, maxLines: maxLines,
       style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        border: InputBorder.none,
+      decoration: InputDecoration(border: InputBorder.none,
         contentPadding: const EdgeInsets.all(16),
         prefixIcon: Icon(i, color: const Color(0xFFFFC107)))));
 
@@ -161,12 +146,10 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
     border: Border.all(color: Colors.white.withOpacity(0.1)));
 
   Widget _switchTile(String t, String s, bool v, Function(bool) onC) =>
-    Container(
-      margin: const EdgeInsets.only(bottom: 8),
+    Container(margin: const EdgeInsets.only(bottom: 8),
       decoration: _boxDeco(),
       child: SwitchListTile(
         title: Text(t, style: const TextStyle(color: Colors.white, fontSize: 14)),
         subtitle: Text(s, style: const TextStyle(color: Colors.white54, fontSize: 11)),
-        value: v, onChanged: onC,
-        activeColor: const Color(0xFFFFC107)));
+        value: v, onChanged: onC, activeColor: const Color(0xFFFFC107)));
 }

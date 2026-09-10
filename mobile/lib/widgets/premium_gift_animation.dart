@@ -91,20 +91,18 @@ class _PremiumGiftAnimationState extends State<PremiumGiftAnimation>
                   decoration: BoxDecoration(color: p.color, shape: BoxShape.circle,
                     boxShadow: [BoxShadow(color: p.color, blurRadius: 12)])))));
             }),
-            // Shine sweep
             if (isP) Positioned.fill(child: Container(decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment(-1 + _shine.value*2, -1), end: const Alignment(1,1),
                 colors: [Colors.transparent, Colors.white.withOpacity(0.1), Colors.transparent])))),
-            // Fly effect for tier 5
             if (widget.gift.tier >= 5) Positioned(
               left: -100 + _fly.value * (MediaQuery.of(context).size.width + 200),
               top: MediaQuery.of(context).size.height * 0.25,
               child: Opacity(opacity: (1-_fly.value).clamp(0.0,1.0),
                 child: Transform.rotate(angle: _fly.value * math.pi * 2,
                   child: Text(_emojiFor(widget.gift.key),
-                    style: TextStyle(fontSize: 80, shadows: [
-                      Shadow(color: const Color(0xFFFFD700), blurRadius: 40)]))))),
+                    style: const TextStyle(fontSize: 80, shadows: [
+                      Shadow(color: Color(0xFFFFD700), blurRadius: 40)]))))),
             Center(child: Transform.scale(scale: 0.2 + t*0.85, child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
