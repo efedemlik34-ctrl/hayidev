@@ -44,6 +44,16 @@ import 'screens/nameplate_screen.dart';
 import 'screens/shop_screen.dart';
 import 'screens/live_stream_screen.dart';
 import 'screens/season_screen.dart';
+import 'screens/profile_visitors_screen.dart';
+import 'screens/group_chat_screen.dart';
+import 'screens/story_screen.dart';
+import 'screens/svip_tiers_screen.dart';
+import 'screens/gift_box_screen.dart';
+import 'screens/flash_sale_screen.dart';
+import 'screens/daily_rewards_screen.dart';
+import 'screens/coupon_screen.dart';
+import 'screens/search_users_screen.dart';
+import 'screens/forgot_password_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -120,6 +130,16 @@ class HayiDevApp extends StatelessWidget {
         '/shop': (_) => const ShopScreen(),
         '/live': (_) => const LiveStreamScreen(),
         '/season': (_) => const SeasonScreen(),
+        '/forgot-password': (_) => const ForgotPasswordScreen(),
+        '/search-users': (_) => const SearchUsersScreen(),
+        '/coupon': (_) => const CouponScreen(),
+        '/daily-rewards': (_) => const DailyRewardsScreen(),
+        '/flash-sale': (_) => const FlashSaleScreen(),
+        '/gift-box': (_) => const GiftBoxScreen(),
+        '/svip-tiers': (_) => const SvipTiersScreen(),
+        '/story': (_) => const StoryScreen(),
+        '/groups': (_) => const GroupChatScreen(),
+        '/profile-visitors': (_) => const ProfileVisitorsScreen(),
       },
     );
   }

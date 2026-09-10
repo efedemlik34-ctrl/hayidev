@@ -690,6 +690,8 @@ try { require('./systems_shop.js')({ app, db, io, auth, adminOnly, changeBal, ad
 
 try { require('./systems_dm.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); } catch (e) { console.error('[systems_dm]', e.message); }
 
+try { require('./systems_extra.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); } catch (e) { console.error('[systems_extra]', e.message); }
+
 srv.listen(PORT, async () => {
   const a = db.prepare('SELECT id FROM users WHERE is_admin = 1').get();
   if (!a) {
