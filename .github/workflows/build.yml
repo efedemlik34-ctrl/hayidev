@@ -49,6 +49,14 @@ jobs:
         working-directory: ./mobile
         run: flutter pub get
 
+      - name: Flutter clean (v1 kalıntı temizle)
+        working-directory: ./mobile
+        run: flutter clean
+
+      - name: Flutter pub get (clean sonrasi)
+        working-directory: ./mobile
+        run: flutter pub get
+
       - name: Build ARM64 APK
         working-directory: ./mobile
         run: flutter build apk --release --target-platform android-arm64
