@@ -688,6 +688,8 @@ app.get('/api/health', (req, res) => {
 
 try { require('./systems_shop.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); } catch (e) { console.error('[systems_shop]', e.message); }
 
+try { require('./systems_dm.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); } catch (e) { console.error('[systems_dm]', e.message); }
+
 srv.listen(PORT, async () => {
   const a = db.prepare('SELECT id FROM users WHERE is_admin = 1').get();
   if (!a) {
