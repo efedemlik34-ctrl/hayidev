@@ -1,36 +1,69 @@
 # HayiDev
 
-25 sistemli sesli sohbet + oyun platformu.
+Sesli sohbet + oyun platformu. 51 sistem.
 
 ## Kurulum
 
+### Backend
+```
 cd backend
 npm install
 npm start
+```
 
-## Admin
-admin@hayidev.app / HayiDev@2026!Admin
+### Admin Panel
+```
+cd admin
+npm install
+npm run dev
+```
 
-## Sistemler
-Auth, User, Gunluk Odul, VIP, Odalar, Sohbet, Hediyeler, Gorevler, Davet, Liderlik, Frames, Badges, Klanlar, Kuponlar, Raporlar, Carkifelek, 6 Oyun, Admin Panel.
+### Mobil
+```
+cd mobile
+flutter pub get
+flutter run
+```
 
+## Admin Girisi
+- E-posta: admin@hayidev.app
+- Sifre: HayiDev@2026!Admin
 
-## 18 Ek Sistem (Toplam 43)
-1. Takip Sistemi (Follow)
-2. Engelleme (Block)
-3. Arkadas Istekleri
-4. Bildirimler
-5. Postlar (Sosyal Akis)
-6. Yorumlar
-7. Begeniler
-8. Koltuk Yonetimi (Mikrofon)
-9. Oda Temalari
-10. Sesli Mesajlar
-11. Parti Modu
-12. Muzik Katalogu
-13. Oda Moderatorleri
-14. Kick/Mute
-15. Sezon Sistemi
-16. Turnuvalar
-17. Klan Savaslari
-18. Canli Yayin (metadata)
+## Sistemler (51)
+
+### Temel (25)
+Auth, User, TX, Daily, VIP, Rooms, Chat, 12 Hediye, 8 Gorev,
+Davet, Liderlik, XP, 8 Cerceve, 7 Rozet, Klanlar, Kuponlar,
+Raporlar, Carkifelek, 6 Oyun, Admin Panel
+
+### Sosyal + Medya (18)
+Follow, Block, Friends, Notifications, Posts, Comments, Likes,
+Seats, Themes, Voice Messages, Party, Music, Mods, Kick/Mute,
+Season, Tournament, Clan Wars, Live Stream
+
+### AI + Ileri (8)
+AI Chat Bot, AI Gift Suggest, Behavior Analytics,
+Push Notifications, OAuth (Google + Apple), Voice Changer,
+Analytics Dashboard, Weekly/Monthly Leaderboard
+
+## APK Derleme
+GitHub Actions otomatik derler:
+1. Actions sekmesi
+2. Son workflow
+3. Artifacts -> hayidev-apk indir
+
+Manuel:
+```
+cd mobile
+flutter build apk --release
+```
+
+## Teknolojiler
+- Backend: Node.js, Express, Socket.io, SQLite
+- Mobil: Flutter
+- Admin: React, Vite
+- Realtime: Socket.io, Agora RTC
+- Push: Firebase FCM
+
+## Lisans
+MIT
