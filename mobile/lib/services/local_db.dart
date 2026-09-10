@@ -33,4 +33,11 @@ class LocalDB {
   }
 
   static bool get isOffline => true;
+
+  static Future<void> setBalance(int b) async {
+    _balance = b;
+    final sp = await SharedPreferences.getInstance();
+    await sp.setInt('balance', b);
+  }
+
 }

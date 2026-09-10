@@ -95,7 +95,7 @@ class _DragonTigerGameState extends State<DragonTigerGame>
       _history.insert(0, winner == 'dragon' ? 'D' : winner == 'tiger' ? 'T' : 'X');
       if (_history.length > 10) _history.removeLast();
     });
-    LocalDB.setBalance(_balance);
+    await LocalDB.setBalance(_balance);
 
     await Future.delayed(const Duration(seconds: 2));
     _flipCtrl.reset();
@@ -131,7 +131,7 @@ class _DragonTigerGameState extends State<DragonTigerGame>
       body: Column(children: [
         _header(),
         Expanded(child: _arena()),
-        _history(),
+        _historyRow(),
         _betRow(),
         _chips(),
       ]),
@@ -256,7 +256,7 @@ class _DragonTigerGameState extends State<DragonTigerGame>
     ]);
   }
 
-  Widget _history() {
+  Widget _historyRow() {
     return Container(
       margin: const EdgeInsets.all(12),
       height: 40,

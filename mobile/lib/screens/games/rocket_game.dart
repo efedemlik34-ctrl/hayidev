@@ -98,7 +98,7 @@ class _RocketGameState extends State<RocketGame>
       _cashed = true;
       _balance += win;
     });
-    LocalDB.setBalance(_balance);
+    await LocalDB.setBalance(_balance);
     try {
       await Api.dio.post('/rocket/cashout', data: {
         'bet': _bet, 'multiplier': _multiplier});

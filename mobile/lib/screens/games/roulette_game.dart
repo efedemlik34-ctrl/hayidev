@@ -92,7 +92,7 @@ class _RouletteGameState extends State<RouletteGame>
       _history.insert(0, num);
       if (_history.length > 8) _history.removeLast();
     });
-    LocalDB.setBalance(_balance);
+    await LocalDB.setBalance(_balance);
 
     await Future.delayed(const Duration(seconds: 3));
     _spinCtrl.reset();

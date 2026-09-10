@@ -1,3 +1,4 @@
+import 'services/local_db.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -73,6 +74,7 @@ import 'screens/forgot_password_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LocalDB.init();;
   await Api.init();
   await OfflineCache.init();
   await FeedbackService.init();

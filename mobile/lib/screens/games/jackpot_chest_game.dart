@@ -80,7 +80,7 @@ class _JackpotChestGameState extends State<JackpotChestGame> {
       _balance += win;
       _rolling = false;
     });
-    LocalDB.setBalance(_balance);
+    await LocalDB.setBalance(_balance);
 
     showDialog(
       context: context,
