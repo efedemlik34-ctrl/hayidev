@@ -2,6 +2,18 @@ import 'package:flutter/material.dart';
 import 'services/api.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/games_screen.dart';
+import 'screens/gifts_screen.dart';
+import 'screens/vip_screen.dart';
+import 'screens/invite_screen.dart';
+import 'screens/clans_screen.dart';
+import 'screens/wheel_screen.dart';
+import 'screens/notifications_screen.dart';
+import 'screens/friends_screen.dart';
+import 'screens/posts_screen.dart';
+import 'screens/tournaments_screen.dart';
+import 'screens/edit_profile_screen.dart';
+import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +37,18 @@ class HayiDevApp extends StatelessWidget {
       routes: {
         '/': (_) => const LoginScreen(),
         '/home': (_) => const HomeScreen(),
+        '/games': (_) => const GamesScreen(),
+        '/gifts': (_) => const GiftsScreen(),
+        '/vip': (_) => const VipScreen(),
+        '/invite': (_) => const InviteScreen(),
+        '/clans': (_) => const ClansScreen(),
+        '/wheel': (_) => const WheelScreen(),
+        '/notifications': (_) => const NotificationsScreen(),
+        '/friends': (_) => const FriendsScreen(),
+        '/posts': (_) => const PostsScreen(),
+        '/tournaments': (_) => const TournamentsScreen(),
+        '/edit-profile': (_) => const EditProfileScreen(),
+        '/settings': (_) => const SettingsScreen(),
       },
     );
   }
