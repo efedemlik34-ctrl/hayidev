@@ -2,170 +2,171 @@ import 'package:flutter/material.dart';
 import '../services/api.dart';
 
 class RoomSettingsScreen extends StatefulWidget {
-  const RoomSettingsScreen({
-    super.key,
-    required this.roomId,
-    required this.roomName,
-  });
-
   final int roomId;
   final String roomName;
+  const RoomSettingsScreen({super.key, required this.roomId, required this.roomName});
   @override
   State<RoomSettingsScreen> createState() => _RoomSettingsScreenState();
 }
 
 class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
-  bool _welcomeMsg = true;
-  bool _newUserWelcome = true;
-  bool _sensitiveFilter = true;
-  bool _memberApproval = true;
-  String _roomType = 'Sohbet odası';
-  String _micMode = 'Açık mod';
-  String _seatCount = '9 Kişi';
+  late TextEditingController _name;
+  late TextEditingController _desc;
+  bool _locked = false;
+  bool _micMuted = false;
+  String _bg = 'dark_purple';
+  int _maxUsers = 10;
+  bool _saving = false;
+
+  final _bgs = ['dark_purple', 'fire_red', 'ocean_blue', 'emerald_green',
+    'royal_purple', 'gold_casino', 'neon_pink', 'cyber_dark'];
+
+  @override
+  void initState() {
+    super.initState();
+    _name = TextEditingController(text: widget.roomName);
+    _desc = TextEditingController();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final r = await Api.dio.get('/rooms/${widget.roomId}');
+      setState(() {
+        _name.text = r.data['name'] ?? _name.text;
+        _desc.text = r.data['description'] ?? '';
+        _locked = r.data['locked'] ?? false;
+        _bg = r.data['background'] ?? 'dark_purple';
+        _maxUsers = r.data['maxUsers'] ?? 10;
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      await Api.dio.put('/rooms/${widget.roomId}', data: {
+        'name': _name.text, 'description': _desc.text,
+        'locked': _locked, 'background': _bg, 'maxUsers': _maxUsers});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Kaydedildi'), backgroundColor: Colors.green));
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e'), backgroundColor: Colors.red));
+    } finally { if (mounted) setState(() => _saving = false); }
+  }
+
+  @override
+  void dispose() { _name.dispose(); _desc.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E27),
-      body: SafeArea(child: Column(children: [
-        // Ust bar
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(children: [
-            IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.pop(context)),
-            const Spacer(),
-            const Text('Oda ayarları',
-              style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
-            const Spacer(),
-            const SizedBox(width: 40),
-          ]),
-        ),
-        Expanded(child: ListView(children: [
-          const SizedBox(height: 12),
-          // Oda basligi
-          _sectionLabel('Oda başlığı'),
-          _textField('👑 SOHBET MUHABBET BABALAR 👑'),
-          const SizedBox(height: 16),
-          // Oda duyurusu
-          _sectionLabel('Oda duyurusu'),
-          _textField('Odaya katıldığınız için teşekkürler'),
-          const SizedBox(height: 24),
-          _menuItem('Odadaki karşılama mesajı', _welcomeMsg, () => setState(() => _welcomeMsg = !_welcomeMsg)),
-          _menuItem('Yeni Kullanıcı Hoş Geldiniz Mesajı', _newUserWelcome, () => setState(() => _newUserWelcome = !_newUserWelcome)),
-          _arrowItem('Genek erkran ayarları', null, () {}),
-          _menuItem('Hassas kelimeler ayarı', _sensitiveFilter, () => setState(() => _sensitiveFilter = !_sensitiveFilter)),
-          _valueItem('Oda tipi', _roomType, () {}),
-          _valueItem('Mikrofon modu', _micMode, () {}),
-          _toggleItem('Oda üyesinin onaylanması\ngerekiyor', _memberApproval, (v) => setState(() => _memberApproval = v)),
-          _valueItem('Mikrofon modu', _seatCount, () {}),
-          _arrowItem('Süper Mikrofon Koltuğu', null, () {}),
-          _arrowItem('Kara liste', null, () {}),
-          _arrowItem('Efekt anahtarı', null, () {}),
-          const SizedBox(height: 40),
-        ])),
-        // Alt bar
+      appBar: AppBar(title: const Text('Oda Ayarlari'),
+        backgroundColor: Colors.transparent),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        _label('Oda Adi'),
+        _field(_name, Icons.edit),
+        const SizedBox(height: 16),
+        _label('Aciklama'),
+        _field(_desc, Icons.description, maxLines: 3),
+        const SizedBox(height: 16),
+        _label('Maksimum Kullanici'),
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: const BoxDecoration(
-            color: Color(0xFF0F1430),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-            _bottomIcon(Icons.cleaning_services, 'Ekranı Temizle', () {}),
-            _bottomIcon(Icons.palette, 'Tema', () {}),
-            _bottomIcon(Icons.music_note, 'Müzik', () {}),
-            _bottomIcon(Icons.lock_outline, 'Kilitle', () {}),
-            _bottomIcon(Icons.admin_panel_settings, 'Yönetici', () {}),
-          ]),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: _boxDeco(),
+          child: Slider(
+            value: _maxUsers.toDouble(), min: 2, max: 50, divisions: 48,
+            activeColor: const Color(0xFFFFC107),
+            label: '$_maxUsers kisi',
+            onChanged: (v) => setState(() => _maxUsers = v.round())),
         ),
-      ])),
-    );
+        const SizedBox(height: 16),
+        _label('Arka Plan'),
+        SizedBox(height: 80, child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: _bgs.length,
+          itemBuilder: (_, i) {
+            final b = _bgs[i];
+            final sel = _bg == b;
+            return GestureDetector(
+              onTap: () => setState(() => _bg = b),
+              child: Container(
+                width: 80, margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: _bgColors(b)),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: sel ? const Color(0xFFFFC107) : Colors.white24,
+                    width: sel ? 3 : 1)),
+                child: sel ? const Icon(Icons.check_circle,
+                  color: Color(0xFFFFC107)) : null),
+            );
+          })),
+        const SizedBox(height: 16),
+        _switchTile('Oda Kilitli', 'Sadece davetliler girebilir',
+          _locked, (v) => setState(() => _locked = v)),
+        _switchTile('Mikrofonlar Kapali', 'Yeni gelenler mic kapali baslar',
+          _micMuted, (v) => setState(() => _micMuted = v)),
+        const SizedBox(height: 24),
+        SizedBox(width: double.infinity, height: 54,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFFC107),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+            onPressed: _saving ? null : _save,
+            child: Text(_saving ? '...' : 'KAYDET',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
+                letterSpacing: 2)))),
+      ]));
   }
 
-  Widget _sectionLabel(String text) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-    child: Text(text, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-  );
+  List<Color> _bgColors(String k) {
+    final m = {
+      'dark_purple': [const Color(0xFF1A0F3E), const Color(0xFF6A1B9A)],
+      'fire_red': [const Color(0xFF3C0808), const Color(0xFFB41E0F)],
+      'ocean_blue': [const Color(0xFF05193C), const Color(0xFF0F5096)],
+      'emerald_green': [const Color(0xFF052312), const Color(0xFF0F5A2D)],
+      'royal_purple': [const Color(0xFF280850), const Color(0xFF6E1EA0)],
+      'gold_casino': [const Color(0xFF321E05), const Color(0xFFA06414)],
+      'neon_pink': [const Color(0xFF320523), const Color(0xFF961964)],
+      'cyber_dark': [const Color(0xFF0A0C19), const Color(0xFF232D4B)],
+    };
+    return m[k] ?? [Colors.black, Colors.grey];
+  }
 
-  Widget _textField(String value) => Container(
-    margin: const EdgeInsets.symmetric(horizontal: 16),
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.06),
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: Colors.white.withOpacity(0.1)),
-    ),
-    child: Text(value, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-  );
+  Widget _label(String t) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(t.toUpperCase(), style: const TextStyle(
+      color: Color(0xFFFFC107), fontSize: 11,
+      fontWeight: FontWeight.bold, letterSpacing: 1.5)));
 
-  Widget _menuItem(String title, bool showDot, VoidCallback onTap) => InkWell(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      child: Row(children: [
-        Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500))),
-        if (showDot) Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFE91E63), shape: BoxShape.circle)),
-        const SizedBox(width: 10),
-        const Icon(Icons.chevron_right, color: Colors.white38, size: 20),
-      ]),
-    ),
-  );
+  Widget _field(TextEditingController c, IconData i, {int maxLines = 1}) =>
+    Container(decoration: _boxDeco(), child: TextField(
+      controller: c, maxLines: maxLines,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.all(16),
+        prefixIcon: Icon(i, color: const Color(0xFFFFC107)))));
 
-  Widget _arrowItem(String title, String? value, VoidCallback onTap) => InkWell(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      child: Row(children: [
-        Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500))),
-        if (value != null) Text(value, style: const TextStyle(color: Colors.white54, fontSize: 13)),
-        const SizedBox(width: 8),
-        const Icon(Icons.chevron_right, color: Colors.white38, size: 20),
-      ]),
-    ),
-  );
+  BoxDecoration _boxDeco() => BoxDecoration(
+    color: Colors.white.withOpacity(0.05),
+    borderRadius: BorderRadius.circular(14),
+    border: Border.all(color: Colors.white.withOpacity(0.1)));
 
-  Widget _valueItem(String title, String value, VoidCallback onTap) => InkWell(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      child: Row(children: [
-        Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500))),
-        Text(value, style: const TextStyle(color: Colors.white54, fontSize: 14)),
-        const SizedBox(width: 8),
-        Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFE91E63), shape: BoxShape.circle)),
-        const SizedBox(width: 8),
-        const Icon(Icons.chevron_right, color: Colors.white38, size: 20),
-      ]),
-    ),
-  );
-
-  Widget _toggleItem(String title, bool value, Function(bool) onChange) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-    child: Row(children: [
-      Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500))),
-      Switch(
-        value: value,
-        onChanged: onChange,
-        activeColor: Colors.white,
-        activeTrackColor: const Color(0xFFFFC107),
-      ),
-    ]),
-  );
-
-  Widget _bottomIcon(IconData icon, String label, VoidCallback onTap) => GestureDetector(
-    onTap: onTap,
-    child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Container(
-        width: 48, height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(colors: [Color(0xFF2A1F5E), Color(0xFF1A0F3E)]),
-          border: Border.all(color: const Color(0xFFFFC107).withOpacity(0.4)),
-        ),
-        child: Icon(icon, color: const Color(0xFFFFC107), size: 22),
-      ),
-      const SizedBox(height: 4),
-      Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-    ]),
-  );
+  Widget _switchTile(String t, String s, bool v, Function(bool) onC) =>
+    Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: _boxDeco(),
+      child: SwitchListTile(
+        title: Text(t, style: const TextStyle(color: Colors.white, fontSize: 14)),
+        subtitle: Text(s, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+        value: v, onChanged: onC,
+        activeColor: const Color(0xFFFFC107)));
 }

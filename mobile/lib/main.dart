@@ -14,6 +14,8 @@ import 'screens/onboarding_screen.dart';
 import 'screens/social_login_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/profile_edit_screen.dart';
+import 'screens/room_settings_screen.dart';
 import 'screens/main_nav_screen.dart';
 import 'screens/games_screen.dart';
 import 'screens/gifts_screen.dart';
