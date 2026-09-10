@@ -35,27 +35,21 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: DIAGNOSTIC — v1 embedding tarama
-        working-directory: ./mobile
-        run: |
-          echo "=== MainActivity dosyalari ==="
-          find android -name "MainActivity.*" -type f -exec echo "--- {} ---" \; -exec cat {} \;
-          echo ""
-          echo "=== AndroidManifest.xml ==="
-          cat android/app/src/main/AndroidManifest.xml
-          echo ""
-          echo "=== GeneratedPluginRegistrant ==="
-          find . -name "GeneratedPluginRegistrant.*" -type f -exec echo "--- {} ---" \; -exec head -20 {} \;
-
-      - name: Flutter clean
-        working-directory: ./mobile
-        run: flutter clean
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            mobile/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Flutter pub get
         working-directory: ./mobile
         run: flutter pub get
 
-      - name: Build APK (tum ABI)
+      - name: Build APK
         working-directory: ./mobile
         run: flutter build apk --release
 
