@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import '../services/api.dart';
 
 class RoomSettingsScreen extends StatefulWidget {
+  const RoomSettingsScreen({
+    super.key,
+    required this.roomId,
+    required this.roomName,
+  });
+
   final int roomId;
-  const RoomSettingsScreen({super.key, required this.roomId});
+  final String roomName;
   @override
   State<RoomSettingsScreen> createState() => _RoomSettingsScreenState();
 }
