@@ -44,6 +44,8 @@ import 'screens/nameplate_screen.dart';
 import 'screens/shop_screen.dart';
 import 'screens/live_stream_screen.dart';
 import 'screens/season_screen.dart';
+import 'screens/bingo_screen.dart';
+import 'screens/football_king_screen.dart';
 import 'screens/profile_visitors_screen.dart';
 import 'screens/group_chat_screen.dart';
 import 'screens/story_screen.dart';
