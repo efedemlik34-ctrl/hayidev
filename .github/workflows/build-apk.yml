@@ -6,38 +6,48 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: '17'
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
           channel: stable
           cache: true
 
-      # 1. Platform dosyalarini olustur
+      # Cache: gradle + pub
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile/pubspec.yaml', 'mobile/android/**/*.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # Platform dosyalarini olustur (sadece yoksa)
       - name: Create platform files
         working-directory: mobile
         run: |
-          flutter create --org com.hayidev --project-name hayi --platforms=android .
-          # flutter create pubspec.yaml'i sifirlayabilir, kontrol et
-          if ! grep -q 'assets/icon' pubspec.yaml; then
-            echo '' >> pubspec.yaml
-            echo 'flutter:' >> pubspec.yaml
-            echo '  uses-material-design: true' >> pubspec.yaml
-            echo '  assets:' >> pubspec.yaml
-            echo '    - assets/icon/' >> pubspec.yaml
+          if [ ! -d "android" ]; then
+            flutter create --org com.hayidev --project-name hayi --platforms=android .
+          else
+            echo 'android klasoru zaten var, flutter create atlandi'
           fi
 
-      # 2. Bagimliliklari kur
+      # Bagimliliklar
       - name: Get dependencies
         working-directory: mobile
         run: flutter pub get
 
-      # 3. Ikon config'i garantiye al
+      # Ikon config garantiye al
       - name: Ensure icon config
         working-directory: mobile
         run: |
@@ -63,30 +73,32 @@ jobs:
               color: "#0A3D1E"
           EOF
 
-      # 4. Ikon olustur
+      # Ikon olustur (hata olsa devam et)
       - name: Generate launcher icons
         working-directory: mobile
         run: flutter pub run flutter_launcher_icons
         continue-on-error: true
 
-      # 5. Splash olustur
+      # Splash olustur (hata olsa devam et)
       - name: Generate splash screen
         working-directory: mobile
         run: flutter pub run flutter_native_splash:create
         continue-on-error: true
 
-      # 6. Uygulama ismini guncelle
+      # App label
       - name: Update app label
         working-directory: mobile
         run: |
           sed -i 's/android:label="[^"]*"/android:label="Hayi"/' android/app/src/main/AndroidManifest.xml || true
 
-      # 7. APK derle
+      # Build (NDK/CMake gerekmemesi icin --no-shrink)
       - name: Build APK
         working-directory: mobile
         run: flutter build apk --release
+        env:
+          GRADLE_OPTS: '-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true'
 
-      # 8. Yukle
+      # Yukle
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
