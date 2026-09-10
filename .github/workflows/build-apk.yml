@@ -3,109 +3,30 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: '17'
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
           channel: stable
           cache: true
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile/pubspec.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Backup pubspec
-        working-directory: mobile
-        run: cp pubspec.yaml /tmp/pubspec.backup.yaml
-
-      - name: Clean android
-        working-directory: mobile
-        run: rm -rf android ios
-
-      - name: Create platform files
-        working-directory: mobile
-        run: flutter create --org com.hayidev --project-name hayi --platforms=android .
-
-      - name: Restore pubspec
-        working-directory: mobile
-        run: cp /tmp/pubspec.backup.yaml pubspec.yaml
-
-      - name: Fix AndroidManifest v2 embedding
-        working-directory: mobile
-        run: |
-          MF=android/app/src/main/AndroidManifest.xml
-          echo "=== ONCE ==="
-          cat $MF
-          sed -i 's|android:name="io.flutter.app.FlutterApplication"|android:name="\${applicationName}"|g' $MF
-          if ! grep -q 'flutterEmbedding' $MF; then
-            sed -i 's|</application>|<meta-data android:name="flutterEmbedding" android:value="2" />\n    </application>|' $MF
-          fi
-          echo "=== SONRA ==="
-          cat $MF
-
-      - name: Fix MainActivity
-        working-directory: mobile
-        run: |
-          MK=android/app/src/main/kotlin/com/hayidev/hayi/MainActivity.kt
-          mkdir -p android/app/src/main/kotlin/com/hayidev/hayi
-          echo 'package com.hayidev.hayi' > $MK
-          echo '' >> $MK
-          echo 'import io.flutter.embedding.android.FlutterActivity' >> $MK
-          echo '' >> $MK
-          echo 'class MainActivity : FlutterActivity()' >> $MK
-          echo "MainActivity.kt yazildi:"
-          cat $MK
-
-      - name: Update app label
-        working-directory: mobile
-        run: sed -i 's/android:label="[^"]*"/android:label="Hayi"/' android/app/src/main/AndroidManifest.xml || true
-
-      - name: Ensure icon config
-        working-directory: mobile
-        run: |
-          printf 'flutter_launcher_icons:\n  android: true\n  ios: false\n  image_path: "assets/icon/app_icon.png"\n  adaptive_icon_background: "#0A3D1E"\n  adaptive_icon_foreground: "assets/icon/app_icon.png"\n  min_sdk_android: 23\n' > flutter_launcher_icons.yaml
-          printf 'flutter_native_splash:\n  color: "#0A3D1E"\n  image: "assets/icon/app_icon.png"\n  android: true\n  ios: false\n  fullscreen: true\n' > flutter_native_splash.yaml
-
       - name: Get dependencies
         working-directory: mobile
         run: flutter pub get
-
-      - name: Generate launcher icons
-        working-directory: mobile
-        run: flutter pub run flutter_launcher_icons
-        continue-on-error: true
-
-      - name: Generate splash screen
-        working-directory: mobile
-        run: flutter pub run flutter_native_splash:create
-        continue-on-error: true
-
       - name: Build APK
         working-directory: mobile
         run: flutter build apk --release
-        env:
-          GRADLE_OPTS: '-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false'
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: hayi-apk
+          name: hayidev-apk
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
