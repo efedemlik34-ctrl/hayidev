@@ -34,4 +34,24 @@ class Api {
       SocketService.disconnect();
     } catch (_) {}
   }
+
+  /// GET isteği — online ise backend, offline ise cache
+  static Future<dynamic> getWithCache(String path) async {
+    try {
+      final r = await dio.get(path);
+      // Cache'e kaydet
+      try {
+        await OfflineCache.save(path.replaceAll('/', '_'), r.data);
+      } catch (_) {}
+      return r.data;
+    } catch (e) {
+      // Cache'den oku
+      try {
+        final cached = OfflineCache.load(path.replaceAll('/', '_'));
+        if (cached != null) return cached;
+      } catch (_) {}
+      rethrow;
+    }
+  }
+
 }

@@ -29,10 +29,14 @@ class _HomeScreenState extends State<HomeScreen> {
         Api.getWithCache('/leaderboard'),
       ]);
       setState(() {
-        _user = results[0] is Map ? Map<String, dynamic>.from(results[0]) : null;
-        _rooms = results[1] is List ? results[1] : [];
-        _gifts = results[2] is List ? results[2] : [];
-        _lb = results[3] is List ? results[3] : [];
+        final r0 = results[0];
+        final r1 = results[1];
+        final r2 = results[2];
+        final r3 = results[3];
+        _user = (r0 is Map) ? Map<String, dynamic>.from(r0) : null;
+        _rooms = (r1 is List) ? List<dynamic>.from(r1) : <dynamic>[];
+        _gifts = (r2 is List) ? List<dynamic>.from(r2) : <dynamic>[];
+        _lb = (r3 is List) ? List<dynamic>.from(r3) : <dynamic>[];
         _loading = false;
       });
     } catch (e) {
