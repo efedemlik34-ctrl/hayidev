@@ -637,6 +637,10 @@ catch (e) { console.error('[systems_bracket] hata:', e.message); }
 try { require('./systems_live.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
 catch (e) { console.error('[systems_live] hata:', e.message); }
 
+
+// Ek sistemler
+try { require('./systems8.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); } catch (e) { console.error('[systems8]:', e.message); }
+
 srv.listen(PORT, async () => {
   const a = db.prepare('SELECT id FROM users WHERE is_admin = 1').get();
   if (!a) {
