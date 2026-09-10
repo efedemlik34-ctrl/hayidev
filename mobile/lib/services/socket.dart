@@ -2,7 +2,7 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class SocketService {
   static io.Socket? _socket;
-  static String _baseUrl = 'http://10.0.2.2:3000';
+  static String _baseUrl = 'http://192.168.1.7:3000';
 
   static io.Socket? get socket => _socket;
 

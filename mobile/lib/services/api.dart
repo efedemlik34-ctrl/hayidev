@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Api {
-  static const baseUrl = 'http://10.0.2.2:3000/api';
+  static const baseUrl = 'http://192.168.1.7:3000/api';
   static final dio = Dio(BaseOptions(baseUrl: baseUrl));
   static String? _token;
   static Future<void> init() async {
