@@ -15,6 +15,14 @@ import 'screens/onboarding_screen.dart';
 import 'screens/social_login_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/games/jackpot_eagle_game.dart';
+import 'screens/games/slot_food_game.dart';
+import 'screens/games/lucky_pro_game.dart';
+import 'screens/games/golden_fortune_game.dart';
+import 'screens/games/football_game.dart';
+import 'screens/games/greedy_pro_game.dart';
+import 'screens/games/lucky_fruit_game.dart';
+import 'screens/games/teen_patti_game.dart';
 import 'screens/games/jackpot_chest_game.dart';
 import 'screens/games/rocket_game.dart';
 import 'screens/games/bull_cowboy_game.dart';
@@ -119,6 +127,15 @@ class HayiDevApp extends StatelessWidget {
         '/': (_) => const SocialLoginScreen(),
         '/email-login': (_) => const LoginScreen(),
         '/home': (_) => const MainNavScreen(),
+        '/teen-patti': (_) => const TeenPattiGame(),
+        '/lucky-fruit': (_) => const LuckyFruitGame(),
+        '/greedy-pro': (_) => const GreedyProGame(),
+        '/football': (_) => const FootballGame(),
+        '/golden-fortune': (_) => const GoldenFortuneGame(),
+        '/lucky-pro': (_) => const LuckyProGame(),
+        '/slot-food': (_) => const SlotFoodGame(),
+        '/jackpot-eagle': (_) => const JackpotEagleGame(),
+
         '/dragon-tiger': (_) => const DragonTigerGame(),
         '/roulette': (_) => const RouletteGame(),
         '/slot': (_) => const SlotGame(),
