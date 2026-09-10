@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'services/api.dart';
 import 'services/socket.dart';
+import 'services/offline_cache.dart';
+import 'widgets/app_theme.dart';
+import 'widgets/theme_provider.dart';
+import 'widgets/feedback_service.dart';
+
+import 'screens/splash_screen.dart';
 import 'screens/social_login_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/games_screen.dart';
 import 'screens/gifts_screen.dart';
@@ -33,41 +42,37 @@ import 'screens/dragon_tiger_screen.dart';
 import 'screens/teen_patti_screen.dart';
 import 'screens/collection_screen.dart';
 import 'screens/nameplate_screen.dart';
-import 'screens/popular_rooms_screen.dart';
-import 'screens/love_house_screen.dart';
-import 'screens/cp_level_screen.dart';
-import 'screens/svip_detail_screen.dart';
-import 'screens/badges_screen.dart';
-import 'screens/dm_chat_screen.dart';
-import 'screens/user_profile_screen.dart';
-import 'screens/report_screen.dart';
-import 'screens/room_theme_screen.dart';
-import 'screens/tournament_bracket_screen.dart';
-import 'screens/clan_war_screen.dart';
-import 'screens/season_screen.dart';
-import 'screens/live_stream_screen.dart';
 import 'screens/shop_screen.dart';
-import 'screens/search_screen.dart';
-import 'screens/leaderboard_screen.dart';
+import 'screens/live_stream_screen.dart';
+import 'screens/season_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Api.init();
-  // Socket baslatilirsa baglanir
+  await OfflineCache.init();
+  await FeedbackService.init();
+
+  final themeProvider = ThemeProvider();
+  await themeProvider.init();
+
   try {
     final token = await Api.getToken();
     if (token != null) {
       SocketService.connect(token);
     }
   } catch (_) {}
-  final themeProvider = ThemeProvider();
-  await themeProvider.init();
-  await FeedbackService.init();
-  runApp(ChangeNotifierProvider.value(value: themeProvider, child: const HayiDevApp()));
+
+  runApp(
+    ChangeNotifierProvider<ThemeProvider>.value(
+      value: themeProvider,
+      child: const HayiDevApp(),
+    ),
+  );
 }
 
 class HayiDevApp extends StatelessWidget {
   const HayiDevApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final tp = Provider.of<ThemeProvider>(context);
@@ -77,14 +82,12 @@ class HayiDevApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: tp.mode,
-      _oldTheme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0A0E27),
-        primaryColor: const Color(0xFFFFC107),
-      ),
-      initialRoute: Api.hasToken() ? '/home' : '/',
+      initialRoute: '/splash',
       routes: {
-        '/onboarding': (_) => OnboardingScreen(onComplete: () => Navigator.pushReplacementNamed(context, '/')),
+        '/splash': (_) => const SplashScreen(),
+        '/onboarding': (_) => OnboardingScreen(
+              onComplete: () => Navigator.pushReplacementNamed(context, '/'),
+            ),
         '/': (_) => const SocialLoginScreen(),
         '/email-login': (_) => const LoginScreen(),
         '/home': (_) => const HomeScreen(),
@@ -115,14 +118,9 @@ class HayiDevApp extends StatelessWidget {
         '/teen-patti': (_) => const TeenPattiScreen(),
         '/collection': (_) => const CollectionScreen(),
         '/nameplate': (_) => const NameplateScreen(),
-        '/popular-rooms': (_) => const PopularRoomsScreen(),
-        '/love-house': (_) => const LoveHouseScreen(),
-        '/cp-level': (_) => const CpLevelScreen(),
-        '/svip-detail': (_) => const SvipDetailScreen(),
-        '/badges': (_) => const BadgesScreen(),
         '/shop': (_) => const ShopScreen(),
-        '/search': (_) => const SearchScreen(),
-        '/leaderboard': (_) => const LeaderboardScreen(),
+        '/live': (_) => const LiveStreamScreen(),
+        '/season': (_) => const SeasonScreen(),
       },
     );
   }
