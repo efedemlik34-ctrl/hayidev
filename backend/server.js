@@ -624,6 +624,10 @@ io.on('connection', (socket) => {
   });
 });
 
+// 18 ek sistem
+try { require('./systems18.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
+catch (e) { console.error('[systems18] hata:', e.message); }
+
 srv.listen(PORT, async () => {
   const a = db.prepare('SELECT id FROM users WHERE is_admin = 1').get();
   if (!a) {
