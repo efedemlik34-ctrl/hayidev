@@ -22,6 +22,24 @@ import 'screens/svip_screen.dart';
 import 'screens/jackaroo_screen.dart';
 import 'screens/rocket_game_screen.dart';
 import 'screens/events_screen.dart';
+import 'screens/umo_screen.dart';
+import 'screens/domino_screen.dart';
+import 'screens/ludo_screen.dart';
+import 'screens/carrom_screen.dart';
+import 'screens/roulette_screen.dart';
+import 'screens/slot_screen.dart';
+import 'screens/dragon_tiger_screen.dart';
+import 'screens/teen_patti_screen.dart';
+import 'screens/collection_screen.dart';
+import 'screens/nameplate_screen.dart';
+import 'screens/popular_rooms_screen.dart';
+import 'screens/love_house_screen.dart';
+import 'screens/cp_level_screen.dart';
+import 'screens/svip_detail_screen.dart';
+import 'screens/badges_screen.dart';
+import 'screens/shop_screen.dart';
+import 'screens/search_screen.dart';
+import 'screens/leaderboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +81,24 @@ class HayiDevApp extends StatelessWidget {
         '/jackaroo': (_) => const JackarooScreen(),
         '/rocket': (_) => const RocketGameScreen(),
         '/events': (_) => const EventsScreen(),
+        '/umo': (_) => const UmoScreen(),
+        '/domino': (_) => const DominoScreen(),
+        '/ludo': (_) => const LudoScreen(),
+        '/carrom': (_) => const CarromScreen(),
+        '/roulette': (_) => const RouletteScreen(),
+        '/slot': (_) => const SlotScreen(),
+        '/dragon-tiger': (_) => const DragonTigerScreen(),
+        '/teen-patti': (_) => const TeenPattiScreen(),
+        '/collection': (_) => const CollectionScreen(),
+        '/nameplate': (_) => const NameplateScreen(),
+        '/popular-rooms': (_) => const PopularRoomsScreen(),
+        '/love-house': (_) => const LoveHouseScreen(),
+        '/cp-level': (_) => const CpLevelScreen(),
+        '/svip-detail': (_) => const SvipDetailScreen(),
+        '/badges': (_) => const BadgesScreen(),
+        '/shop': (_) => const ShopScreen(),
+        '/search': (_) => const SearchScreen(),
+        '/leaderboard': (_) => const LeaderboardScreen(),
       },
     );
   }
