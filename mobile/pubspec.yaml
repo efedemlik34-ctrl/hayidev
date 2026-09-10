@@ -17,6 +17,8 @@ dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/games/gifts/
+  assets:
     - assets/games/backgrounds/
     - assets/games/cards/
     - assets/games/chips/

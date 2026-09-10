@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../services/api.dart';
+import '../services/local_db.dart';
+import '../widgets/gift_catalog_sheet.dart';
 import '../services/agora_service.dart';
 import '../widgets/campfire_scene.dart';
 import '../widgets/seat_widget.dart';
@@ -195,6 +197,21 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> with TickerProviderSt
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
     });
+  }
+
+
+  void _openGiftSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => GiftCatalogSheet(
+        roomId: widget.roomId,
+        receiverId: 1,
+        receiverName: widget.roomName,
+        balance: LocalDB.getBalance(),
+      ),
+    );
   }
 
   @override
