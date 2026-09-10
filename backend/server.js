@@ -13,7 +13,7 @@ const db = new Database('hayidev.db');
 db.pragma('journal_mode = WAL');
 
 db.exec(`
-CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, balance INTEGER DEFAULT 10000, diamonds INTEGER DEFAULT 100, vip INTEGER DEFAULT 0, xp INTEGER DEFAULT 0, level INTEGER DEFAULT 0, is_admin INTEGER DEFAULT 0, is_banned INTEGER DEFAULT 0, frame TEXT DEFAULT 'default', bio TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, balance INTEGER DEFAULT 10000, diamonds INTEGER DEFAULT 100, vip INTEGER DEFAULT 0, xp INTEGER DEFAULT 0, level INTEGER DEFAULT 0, is_admin INTEGER DEFAULT 0, is_banned INTEGER DEFAULT 0, frame TEXT DEFAULT 'default', created_at TEXT DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS tx (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, amount INTEGER, type TEXT, ref TEXT, balance_after INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS rooms (id INTEGER PRIMARY KEY AUTOINCREMENT, owner_id INTEGER, name TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, room_id INTEGER, text TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
@@ -38,7 +38,6 @@ const io = new Server(srv, { cors: { origin: '*' } });
 app.use(cors());
 app.use(express.json());
 
-// YARDIMCI
 const auth = (req, res, next) => {
   try {
     const t = (req.headers.authorization || '').replace('Bearer ', '');
@@ -73,12 +72,12 @@ const addXp = (uid, a) => {
 
 const QUESTS = [
   { key: 'daily_login', title: 'Giris yap', target: 1, reward: 500 },
-  { key: 'send_msg', title: '5 mesaj gonder', target: 5, reward: 1000 },
-  { key: 'send_gift', title: '1 hediye gonder', target: 1, reward: 2000 },
-  { key: 'play_3', title: '3 oyun oyna', target: 3, reward: 3000 },
-  { key: 'win_1', title: '1 kazan', target: 1, reward: 5000 },
-  { key: 'spin_10', title: '10 slot cevir', target: 10, reward: 4000 },
-  { key: 'invite_1', title: '1 davet et', target: 1, reward: 10000 },
+  { key: 'send_msg', title: '5 mesaj', target: 5, reward: 1000 },
+  { key: 'send_gift', title: '1 hediye', target: 1, reward: 2000 },
+  { key: 'play_3', title: '3 oyun', target: 3, reward: 3000 },
+  { key: 'win_1', title: '1 kazanc', target: 1, reward: 5000 },
+  { key: 'spin_10', title: '10 slot', target: 10, reward: 4000 },
+  { key: 'invite_1', title: '1 davet', target: 1, reward: 10000 },
   { key: 'vip_buy', title: 'VIP ol', target: 1, reward: 20000 }
 ];
 
@@ -95,7 +94,6 @@ const questProgress = (uid, key, inc) => {
   }
 };
 
-// ═══ SİSTEM 1-2: AUTH ═══
 app.post('/api/auth/register', async (req, res) => {
   const { email, username, password } = req.body;
   if (!email || !username || !password) return res.status(400).json({ error: 'MISSING' });
@@ -114,28 +112,22 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   const { identifier, password } = req.body;
   const u = db.prepare('SELECT * FROM users WHERE email = ? OR username = ?').get((identifier || '').toLowerCase(), identifier);
-  if (!u) return res.status(401).json({ error: 'INVALID_CREDENTIALS' });
+  if (!u) return res.status(401).json({ error: 'INVALID' });
   if (u.is_banned) return res.status(403).json({ error: 'BANNED' });
   const ok = await bcrypt.compare(password, u.password);
-  if (!ok) return res.status(401).json({ error: 'INVALID_CREDENTIALS' });
+  if (!ok) return res.status(401).json({ error: 'INVALID' });
   db.prepare('UPDATE users SET last_login = ? WHERE id = ?').run(new Date().toISOString(), u.id);
   res.json({ token: jwt.sign({ id: u.id }, SECRET, { expiresIn: '30d' }), user: { id: u.id, username: u.username, email: u.email, balance: u.balance, diamonds: u.diamonds, vip: u.vip, level: u.level, is_admin: u.is_admin } });
 });
 
-// ═══ SİSTEM 3-4: USER PROFİL + İŞLEM GEÇMİŞİ ═══
 app.get('/api/user/me', auth, (req, res) => {
-  res.json(db.prepare('SELECT id, username, email, balance, diamonds, vip, xp, level, is_admin, frame, bio, created_at FROM users WHERE id = ?').get(req.uid));
+  res.json(db.prepare('SELECT id, username, email, balance, diamonds, vip, xp, level, is_admin, frame, created_at FROM users WHERE id = ?').get(req.uid));
 });
 
 app.get('/api/user/tx', auth, (req, res) => {
   res.json(db.prepare('SELECT * FROM tx WHERE user_id = ? ORDER BY id DESC LIMIT 100').all(req.uid));
 });
 
-app.get('/api/user/:id', auth, (req, res) => {
-  res.json(db.prepare('SELECT id, username, vip, level, frame, bio FROM users WHERE id = ?').get(req.params.id));
-});
-
-// ═══ SİSTEM 5: GÜNLÜK ÖDÜL ═══
 const REWARDS = [500, 1000, 2000, 5000, 10000, 25000, 100000, 500000];
 
 app.post('/api/daily/claim', auth, (req, res) => {
@@ -156,13 +148,6 @@ app.post('/api/daily/claim', auth, (req, res) => {
   res.json({ reward, streak: d.streak + 1, balance: bal });
 });
 
-app.get('/api/daily/status', auth, (req, res) => {
-  const d = db.prepare('SELECT * FROM daily WHERE user_id = ?').get(req.uid) || { streak: 0, last: null };
-  const today = new Date().toISOString().slice(0, 10);
-  res.json({ streak: d.streak, canClaim: !d.last || d.last.slice(0, 10) !== today, next: REWARDS[d.streak % 8] });
-});
-
-// ═══ SİSTEM 6: VIP ═══
 const VIP = [
   { level: 1, name: 'VIP 1', price: 50000 },
   { level: 2, name: 'VIP 2', price: 200000 },
@@ -187,14 +172,11 @@ app.post('/api/vip/buy', auth, (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-// ═══ SİSTEM 7-8: ODALAR + SOHBET ═══
 app.post('/api/rooms/create', auth, (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'NAME_REQUIRED' });
   const r = db.prepare('INSERT INTO rooms (owner_id, name) VALUES (?, ?)').run(req.uid, name);
-  const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(r.lastInsertRowid);
-  io.emit('rooms:update', db.prepare('SELECT r.*, u.username AS owner FROM rooms r LEFT JOIN users u ON u.id = r.owner_id ORDER BY r.id DESC LIMIT 50').all());
-  res.json(room);
+  res.json(db.prepare('SELECT * FROM rooms WHERE id = ?').get(r.lastInsertRowid));
 });
 
 app.get('/api/rooms', auth, (req, res) => {
@@ -206,7 +188,6 @@ app.get('/api/rooms/:id/messages', auth, (req, res) => {
   res.json(m.reverse());
 });
 
-// ═══ SİSTEM 9: HEDİYELER (12 çeşit) ═══
 const GIFTS = {
   rose: { name: 'Gul', icon: '🌹', price: 100 },
   heart: { name: 'Kalp', icon: '❤️', price: 500 },
@@ -234,19 +215,12 @@ app.post('/api/gifts/send', auth, (req, res) => {
     changeBal(req.uid, -g.price, 'gift_sent', giftKey);
     changeBal(receiverId, Math.floor(g.price * 0.7), 'gift_received', giftKey);
     db.prepare('INSERT INTO gifts_log (sender_id, receiver_id, gift_key, amount) VALUES (?, ?, ?, ?)').run(req.uid, receiverId, giftKey, g.price);
-    const s = db.prepare('SELECT username FROM users WHERE id = ?').get(req.uid);
-    io.emit('gift:received', { sender: s.username, receiverId, giftKey, icon: g.icon, name: g.name });
     questProgress(req.uid, 'send_gift', 1);
     addXp(req.uid, 5);
     res.json({ ok: true, cost: g.price, icon: g.icon });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-app.get('/api/gifts/history', auth, (req, res) => {
-  res.json(db.prepare('SELECT g.*, s.username AS sender, r.username AS receiver FROM gifts_log g LEFT JOIN users s ON s.id = g.sender_id LEFT JOIN users r ON r.id = g.receiver_id WHERE g.sender_id = ? OR g.receiver_id = ? ORDER BY g.id DESC LIMIT 50').all(req.uid, req.uid));
-});
-
-// ═══ SİSTEM 10: GÖREVLER ═══
 app.get('/api/quests', auth, (req, res) => {
   const day = new Date().toISOString().slice(0, 10);
   const prog = db.prepare('SELECT * FROM quests WHERE user_id = ? AND day = ?').all(req.uid, day);
@@ -273,7 +247,6 @@ app.post('/api/quests/:key/claim', auth, (req, res) => {
   res.json({ ok: true, reward: q.reward, balance: bal });
 });
 
-// ═══ SİSTEM 11: DAVET ═══
 app.get('/api/invite/me', auth, (req, res) => {
   const code = 'HY' + req.uid.toString(36).toUpperCase().padStart(6, '0');
   const inv = db.prepare('SELECT i.created_at, u.username FROM invites i JOIN users u ON u.id = i.invited WHERE i.inviter = ? ORDER BY i.id DESC LIMIT 50').all(req.uid);
@@ -289,21 +262,14 @@ app.post('/api/invite/apply', auth, (req, res) => {
     db.prepare('INSERT INTO invites (inviter, invited, code) VALUES (?, ?, ?)').run(iid, req.uid, code);
     changeBal(iid, 5000, 'invite_reward', code);
     changeBal(req.uid, 2500, 'invite_bonus', code);
-    questProgress(iid, 'invite_1', 1);
     res.json({ ok: true, bonus: 2500 });
   } catch (e) { res.status(400).json({ error: 'ALREADY_USED' }); }
 });
 
-// ═══ SİSTEM 12: LİDERLİK ═══
 app.get('/api/leaderboard', auth, (req, res) => {
   res.json(db.prepare('SELECT id, username, balance, vip, level FROM users ORDER BY balance DESC LIMIT 100').all());
 });
 
-app.get('/api/leaderboard/gifts', auth, (req, res) => {
-  res.json(db.prepare('SELECT u.id, u.username, SUM(g.amount) AS total FROM gifts_log g JOIN users u ON u.id = g.sender_id GROUP BY g.sender_id ORDER BY total DESC LIMIT 50').all());
-});
-
-// ═══ SİSTEM 13: FRAMES ═══
 const FRAMES = [
   { key: 'default', name: 'Varsayilan', price: 0 },
   { key: 'gold', name: 'Altin', price: 50000 },
@@ -333,27 +299,25 @@ app.post('/api/frames/buy', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-// ═══ SİSTEM 14: BADGES ═══
 const BADGES = [
-  { key: 'first_win', name: 'Ilk Zafer', desc: 'Ilk oyunu kazan' },
-  { key: 'gift_master', name: 'Hediye Ustasi', desc: '100 hediye gonder' },
-  { key: 'social', name: 'Sosyal', desc: '1000 mesaj' },
-  { key: 'winner', name: 'Kazanan', desc: '100 oyun kazan' },
-  { key: 'vip1', name: 'VIP Baslangic', desc: 'VIP ol' },
-  { key: 'billionaire', name: 'Milyarder', desc: '1 milyar coin' },
-  { key: 'jackpot', name: 'Jackpot', desc: 'Buyuk odul kazan' }
+  { key: 'first_win', name: 'Ilk Zafer' },
+  { key: 'gift_master', name: 'Hediye Ustasi' },
+  { key: 'social', name: 'Sosyal' },
+  { key: 'winner', name: 'Kazanan' },
+  { key: 'vip1', name: 'VIP' },
+  { key: 'billionaire', name: 'Milyarder' },
+  { key: 'jackpot', name: 'Jackpot' }
 ];
 
 app.get('/api/badges', auth, (req, res) => {
   const owned = new Set(db.prepare('SELECT badge_key FROM badges WHERE user_id = ?').all(req.uid).map(b => b.badge_key));
-  res.json(BADGES.map(b => ({ key: b.key, name: b.name, desc: b.desc, owned: owned.has(b.key) })));
+  res.json(BADGES.map(b => ({ key: b.key, name: b.name, owned: owned.has(b.key) })));
 });
 
 const grantBadge = (uid, key) => {
   try { db.prepare('INSERT OR IGNORE INTO badges (user_id, badge_key) VALUES (?, ?)').run(uid, key); } catch (e) {}
 };
 
-// ═══ SİSTEM 15: KLANLAR ═══
 app.post('/api/clans/create', auth, (req, res) => {
   const { name, description } = req.body;
   if (!name) return res.status(400).json({ error: 'NAME_REQUIRED' });
@@ -368,21 +332,6 @@ app.get('/api/clans', auth, (req, res) => {
   res.json(db.prepare('SELECT c.*, u.username AS owner, (SELECT COUNT(*) FROM clan_members WHERE clan_id = c.id) AS members FROM clans c JOIN users u ON u.id = c.owner_id ORDER BY c.points DESC LIMIT 50').all());
 });
 
-app.get('/api/clans/:id', auth, (req, res) => {
-  const c = db.prepare('SELECT * FROM clans WHERE id = ?').get(req.params.id);
-  if (!c) return res.status(404).json({ error: 'NOT_FOUND' });
-  const members = db.prepare('SELECT u.id, u.username, u.vip, u.level, cm.role FROM clan_members cm JOIN users u ON u.id = cm.user_id WHERE cm.clan_id = ?').all(req.params.id);
-  res.json({ clan: c, members });
-});
-
-app.post('/api/clans/:id/join', auth, (req, res) => {
-  try {
-    db.prepare('INSERT INTO clan_members (clan_id, user_id) VALUES (?, ?)').run(req.params.id, req.uid);
-    res.json({ ok: true });
-  } catch (e) { res.status(400).json({ error: 'ALREADY_MEMBER' }); }
-});
-
-// ═══ SİSTEM 16: KUPONLAR ═══
 app.post('/api/coupons/redeem', auth, (req, res) => {
   const { code } = req.body;
   if (!code) return res.status(400).json({ error: 'MISSING' });
@@ -393,10 +342,9 @@ app.post('/api/coupons/redeem', auth, (req, res) => {
   catch (e) { return res.status(400).json({ error: 'ALREADY_USED' }); }
   db.prepare('UPDATE coupons SET used = used + 1 WHERE id = ?').run(c.id);
   if (c.reward_type === 'coin') changeBal(req.uid, c.reward_value, 'coupon', c.code);
-  res.json({ ok: true, reward: c.reward_value, type: c.reward_type });
+  res.json({ ok: true, reward: c.reward_value });
 });
 
-// ═══ SİSTEM 17: RAPORLAR ═══
 app.post('/api/reports', auth, (req, res) => {
   const { reported, type, message } = req.body;
   if (!reported || !type) return res.status(400).json({ error: 'MISSING' });
@@ -405,11 +353,6 @@ app.post('/api/reports', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/reports/my', auth, (req, res) => {
-  res.json(db.prepare('SELECT * FROM reports WHERE reporter = ? ORDER BY id DESC LIMIT 50').all(req.uid));
-});
-
-// ═══ SİSTEM 18: ÇARKIFELEK ═══
 const WHEEL = [
   { r: 500, w: 25 }, { r: 1000, w: 20 }, { r: 5000, w: 15 }, { r: 10000, w: 10 },
   { r: 25000, w: 6 }, { r: 50000, w: 3 }, { r: 100000, w: 1 }
@@ -439,7 +382,6 @@ app.post('/api/wheel/spin', auth, (req, res) => {
   res.json({ reward: pick.r });
 });
 
-// ═══ SİSTEM 19: ROCKET OYUNU ═══
 const rockets = {};
 
 app.post('/api/games/rocket/start', auth, (req, res) => {
@@ -473,7 +415,6 @@ app.post('/api/games/rocket/cashout', auth, (req, res) => {
   res.json({ ok: true, multiplier: m, payout: p });
 });
 
-// ═══ SİSTEM 20: RULET ═══
 const RED = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 
 app.post('/api/games/roulette/spin', auth, (req, res) => {
@@ -500,9 +441,8 @@ app.post('/api/games/roulette/spin', auth, (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-// ═══ SİSTEM 21: SLOT ═══
-const SYM = ['🍒', '🍋', '🍇', '💎', '⭐', '7️⃣', '👑'];
-const PAYS = { '🍒': 5, '🍋': 10, '🍇': 20, '💎': 50, '⭐': 100, '7️⃣': 500, '👑': 1000 };
+const SYM = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+const PAYS = { 'A': 5, 'B': 10, 'C': 20, 'D': 50, 'E': 100, 'F': 500, 'G': 1000 };
 
 app.post('/api/games/slot/spin', auth, (req, res) => {
   const bet = parseInt(req.body.bet);
@@ -529,7 +469,6 @@ app.post('/api/games/slot/spin', auth, (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-// ═══ SİSTEM 22: DRAGON TIGER ═══
 const CARDS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 const VAL = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
 
@@ -555,7 +494,6 @@ app.post('/api/games/dragon-tiger/play', auth, (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-// ═══ SİSTEM 23: COINFLIP ═══
 app.post('/api/games/coinflip/flip', auth, (req, res) => {
   const bet = parseInt(req.body.bet);
   const pick = req.body.pick;
@@ -577,7 +515,6 @@ app.post('/api/games/coinflip/flip', auth, (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-// ═══ SİSTEM 24: DICE ═══
 app.post('/api/games/dice/roll', auth, (req, res) => {
   const bet = parseInt(req.body.bet);
   const pick = req.body.pick;
@@ -600,7 +537,6 @@ app.post('/api/games/dice/roll', auth, (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-// ═══ SİSTEM 25: ADMIN PANEL ═══
 app.post('/api/admin/login', async (req, res) => {
   const { identifier, password } = req.body;
   const u = db.prepare('SELECT * FROM users WHERE (email = ? OR username = ?) AND is_admin = 1').get((identifier || '').toLowerCase(), identifier);
@@ -619,7 +555,7 @@ app.get('/api/admin/stats', auth, adminOnly, (req, res) => {
     gifts: db.prepare('SELECT COUNT(*) AS c FROM gifts_log').get().c,
     messages: db.prepare('SELECT COUNT(*) AS c FROM messages').get().c,
     clans: db.prepare('SELECT COUNT(*) AS c FROM clans').get().c,
-    reports: db.prepare('SELECT COUNT(*) AS c FROM reports WHERE status = \'open\'').get().c
+    reports: db.prepare('SELECT COUNT(*) AS c FROM reports WHERE status = 'open'').get().c
   });
 });
 
@@ -630,14 +566,12 @@ app.get('/api/admin/users', auth, adminOnly, (req, res) => {
 app.post('/api/admin/users/:id/balance', auth, adminOnly, (req, res) => {
   try {
     const b = changeBal(parseInt(req.params.id), parseInt(req.body.amount), 'admin', 'panel');
-    db.prepare('INSERT INTO audit (actor, action, details) VALUES (?, ?, ?)').run(req.uid, 'balance_change', JSON.stringify({ target: req.params.id, amount: req.body.amount }));
     res.json({ balance: b });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
 app.post('/api/admin/users/:id/ban', auth, adminOnly, (req, res) => {
   db.prepare('UPDATE users SET is_banned = ? WHERE id = ?').run(req.body.banned ? 1 : 0, req.params.id);
-  db.prepare('INSERT INTO audit (actor, action, details) VALUES (?, ?, ?)').run(req.uid, 'ban', JSON.stringify({ target: req.params.id, banned: req.body.banned }));
   res.json({ ok: true });
 });
 
@@ -651,10 +585,6 @@ app.post('/api/admin/broadcast', auth, adminOnly, (req, res) => {
   res.json({ ok: true, sent: db.prepare('SELECT COUNT(*) AS c FROM users').get().c });
 });
 
-app.get('/api/admin/audit', auth, adminOnly, (req, res) => {
-  res.json(db.prepare('SELECT a.*, u.username FROM audit a LEFT JOIN users u ON u.id = a.actor ORDER BY a.id DESC LIMIT 200').all());
-});
-
 app.post('/api/admin/coupons', auth, adminOnly, (req, res) => {
   const { code, reward_value, max_uses } = req.body;
   const c = code || require('crypto').randomBytes(5).toString('hex').toUpperCase();
@@ -664,11 +594,8 @@ app.post('/api/admin/coupons', auth, adminOnly, (req, res) => {
   } catch (e) { res.status(409).json({ error: 'CODE_EXISTS' }); }
 });
 
-// HEALTH
 app.get('/', (req, res) => res.json({ name: 'HayiDev', version: '1.0.0', systems: 25, status: 'running' }));
-app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
-// SOCKET.IO
 io.use((s, next) => {
   try {
     s.uid = jwt.verify(s.handshake.auth.token, SECRET).id;
@@ -680,7 +607,6 @@ io.use((s, next) => {
 
 io.on('connection', (socket) => {
   socket.join('user_' + socket.uid);
-  console.log('Baglandi:', socket.username);
   socket.on('room:join', (d) => {
     socket.join('room_' + d.roomId);
     io.to('room_' + d.roomId).emit('room:user_joined', { username: socket.username });
@@ -695,13 +621,9 @@ io.on('connection', (socket) => {
     io.to('room_' + d.roomId).emit('chat:message', { id: r.lastInsertRowid, username: socket.username, text: d.text, ts: Date.now() });
     questProgress(socket.uid, 'send_msg', 1);
     addXp(socket.uid, 1);
-    const cnt = db.prepare('SELECT COUNT(*) AS c FROM messages WHERE user_id = ?').get(socket.uid).c;
-    if (cnt >= 1000) grantBadge(socket.uid, 'social');
   });
-  socket.on('disconnect', () => console.log('Ayrildi:', socket.username));
 });
 
-// START
 srv.listen(PORT, async () => {
   const a = db.prepare('SELECT id FROM users WHERE is_admin = 1').get();
   if (!a) {
