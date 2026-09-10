@@ -14,6 +14,12 @@ import 'screens/onboarding_screen.dart';
 import 'screens/social_login_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/games/jackpot_chest_game.dart';
+import 'screens/games/rocket_game.dart';
+import 'screens/games/bull_cowboy_game.dart';
+import 'screens/games/slot_game.dart';
+import 'screens/games/roulette_game.dart';
+import 'screens/games/dragon_tiger_game.dart';
 import 'screens/quests_screen.dart';
 import 'screens/visitors_screen.dart';
 import 'screens/stories_screen.dart';
@@ -111,6 +117,13 @@ class HayiDevApp extends StatelessWidget {
         '/': (_) => const SocialLoginScreen(),
         '/email-login': (_) => const LoginScreen(),
         '/home': (_) => const MainNavScreen(),
+        '/dragon-tiger': (_) => const DragonTigerGame(),
+        '/roulette': (_) => const RouletteGame(),
+        '/slot': (_) => const SlotGame(),
+        '/bull-cowboy': (_) => const BullCowboyGame(),
+        '/rocket': (_) => const RocketGame(),
+        '/jackpot-chest': (_) => const JackpotChestGame(),
+
         '/games': (_) => const GamesScreen(),
         '/gifts': (_) => const GiftsScreen(),
         '/vip': (_) => const VipScreen(),
