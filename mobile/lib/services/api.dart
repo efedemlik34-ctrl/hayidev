@@ -1,9 +1,9 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'local_db.dart';
 
 class Api {
-  // ⚠️ Bu IP'yi kendi bilgisayarinin IP'si ile degistir
+  // âš ï¸ Bu IP'yi kendi bilgisayarinin IP'si ile degistir
   // ipconfig yazarak IPv4 adresini ogren
   static const String BASE_IP = "192.168.1.7";
   static const int BASE_PORT = 3000;
@@ -106,3 +106,4 @@ class Api {
     return true;
   }
 }
+
