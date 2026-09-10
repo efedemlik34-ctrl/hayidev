@@ -21,33 +21,82 @@ jobs:
           channel: stable
           cache: true
 
-      # Cache: gradle + pub
       - uses: actions/cache@v4
         with:
           path: |
             ~/.pub-cache
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile/pubspec.yaml', 'mobile/android/**/*.gradle') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile/pubspec.yaml') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # Platform dosyalarini olustur (sadece yoksa)
+      # 1. Eski android klasoru varsa sil — temiz flutter create icin
+      - name: Clean android folder
+        working-directory: mobile
+        run: |
+          if [ -d "android" ]; then
+            rm -rf android
+          fi
+          if [ -d "ios" ]; then
+            rm -rf ios
+          fi
+
+      # 2. pubspec.yaml'i yedekle (flutter create eziyor)
+      - name: Backup pubspec
+        working-directory: mobile
+        run: cp pubspec.yaml /tmp/pubspec.backup.yaml
+
+      # 3. Flutter create — temiz v2 embedding android olustur
       - name: Create platform files
         working-directory: mobile
         run: |
-          if [ ! -d "android" ]; then
-            flutter create --org com.hayidev --project-name hayi --platforms=android .
-          else
-            echo 'android klasoru zaten var, flutter create atlandi'
+          flutter create --org com.hayidev --project-name hayi --platforms=android --overwrite .
+
+      # 4. pubspec.yaml'i geri yukle
+      - name: Restore pubspec
+        working-directory: mobile
+        run: cp /tmp/pubspec.backup.yaml pubspec.yaml
+
+      # 5. AndroidManifest.xml v2 embedding zorla
+      - name: Fix AndroidManifest v2 embedding
+        working-directory: mobile
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          echo "=== ÖNCE ==="
+          cat $MANIFEST
+          # v1 -> v2 fix
+          sed -i 's|android:name="io.flutter.app.FlutterApplication"|android:name="${applicationName}"|g' $MANIFEST
+          # flutterEmbedding meta-data ekle (yoksa)
+          if ! grep -q 'flutterEmbedding' $MANIFEST; then
+            sed -i 's|</application>|        <meta-data android:name="flutterEmbedding" android:value="2" />\n    </application>|' $MANIFEST
+          fi
+          echo "=== SONRA ==="
+          cat $MANIFEST
+
+      # 6. MainActivity.kt kontrol
+      - name: Fix MainActivity
+        working-directory: mobile
+        run: |
+          MK=android/app/src/main/kotlin/com/hayidev/hayi/MainActivity.kt
+          if [ -f "$MK" ]; then
+            cat > $MK << 'EOF'
+package com.hayidev.hayi
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
+EOF
+            echo "MainActivity.kt v2 embedding olarak yazildi"
           fi
 
-      # Bagimliliklar
-      - name: Get dependencies
+      # 7. App label guncelle
+      - name: Update app label
         working-directory: mobile
-        run: flutter pub get
+        run: |
+          sed -i 's/android:label="[^"]*"/android:label="Hayi"/' android/app/src/main/AndroidManifest.xml || true
 
-      # Ikon config garantiye al
+      # 8. Ikon/splash config
       - name: Ensure icon config
         working-directory: mobile
         run: |
@@ -67,38 +116,32 @@ jobs:
             android: true
             ios: false
             fullscreen: true
-            android_12:
-              image: "assets/icon/app_icon.png"
-              icon_background_color: "#0A3D1E"
-              color: "#0A3D1E"
           EOF
 
-      # Ikon olustur (hata olsa devam et)
+      # 9. Bagimliliklar
+      - name: Get dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      # 10. Ikon/splash olustur
       - name: Generate launcher icons
         working-directory: mobile
         run: flutter pub run flutter_launcher_icons
         continue-on-error: true
 
-      # Splash olustur (hata olsa devam et)
       - name: Generate splash screen
         working-directory: mobile
         run: flutter pub run flutter_native_splash:create
         continue-on-error: true
 
-      # App label
-      - name: Update app label
-        working-directory: mobile
-        run: |
-          sed -i 's/android:label="[^"]*"/android:label="Hayi"/' android/app/src/main/AndroidManifest.xml || true
-
-      # Build (NDK/CMake gerekmemesi icin --no-shrink)
+      # 11. APK build
       - name: Build APK
         working-directory: mobile
         run: flutter build apk --release
         env:
-          GRADLE_OPTS: '-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true'
+          GRADLE_OPTS: '-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false'
 
-      # Yukle
+      # 12. Artifact yukle
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
