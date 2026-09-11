@@ -628,7 +628,6 @@ io.on('connection', (socket) => {
 try { require('./systems18.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
 catch (e) { console.error('[systems18] hata:', e.message); }
 
-
 // Tam sistemler (audio + bracket + live)
 try { require('./systems_audio.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
 catch (e) { console.error('[systems_audio] hata:', e.message); }
@@ -637,10 +636,8 @@ catch (e) { console.error('[systems_bracket] hata:', e.message); }
 try { require('./systems_live.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); }
 catch (e) { console.error('[systems_live] hata:', e.message); }
 
-
 // Ek sistemler
 try { require('./systems8.js')({ app, db, io, auth, adminOnly, changeBal, addXp, questProgress, grantBadge }); } catch (e) { console.error('[systems8]:', e.message); }
-
 
 // ═══ EKSIK ENDPOINTLER ═══
 
