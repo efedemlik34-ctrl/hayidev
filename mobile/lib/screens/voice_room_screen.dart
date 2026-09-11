@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../widgets/app_theme.dart';
 import '../widgets/room_chat_widget.dart';
 import 'room_settings_screen.dart';
 import '../services/api.dart';
