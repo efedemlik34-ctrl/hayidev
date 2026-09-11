@@ -359,15 +359,8 @@ io.on('connection', (socket) => {
 
 // ═══ START ═══
 server.listen(PORT, '0.0.0.0', () => {
-  const os = require('os');
-  const nets = os.networkInterfaces();
-  let ip = 'localhost';
-  for (const k of Object.keys(nets)) {
-    for (const n of nets[k]) {
-      if (n.family === 'IPv4' && !n.internal) { ip = n.address; break; }
-    }
-  }
-  console.log('');
+  const ip = '192.168.1.7';
+    console.log('');
   console.log('==========================================');
   console.log('  HAYIDEV SERVER CALISIYOR');
   console.log('==========================================');
