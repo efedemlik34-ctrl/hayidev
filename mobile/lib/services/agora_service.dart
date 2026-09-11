@@ -11,6 +11,7 @@ class AgoraService {
   bool _initialized = false;
   int? _remoteUid;
   bool _muted = false;
+  Function(int uid)? _onUserJoined;
 
   RtcEngine? get engine => _engine;
   int? get remoteUid => _remoteUid;
@@ -19,6 +20,7 @@ class AgoraService {
 
   Future<bool> init({Function(int uid)? onUserJoined}) async {
     if (_initialized) return true;
+    _onUserJoined = onUserJoined;
     try {
       _engine = createAgoraRtcEngine();
       await _engine!.initialize(const RtcEngineContext(appId: appId));
@@ -26,7 +28,7 @@ class AgoraService {
         onJoinChannelSuccess: (conn, elapsed) {},
         onUserJoined: (conn, uid, elapsed) {
           _remoteUid = uid;
-          onUserJoined?.call(uid);
+          _onUserJoined?.call(uid);
         },
         onUserOffline: (conn, uid, reason) {
           _remoteUid = null;
