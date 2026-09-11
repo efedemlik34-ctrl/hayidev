@@ -57,7 +57,7 @@ class Api {
     return r.data;
   }
 
-  static Future<Map<String, dynamic>?> login(
+  static Future<Map<String, dynamic>> login(
       String username, String password) async {
     try {
       final r = await dio.post('/auth/login', data: {
@@ -66,10 +66,29 @@ class Api {
       await setToken(r.data['token']);
       await LocalDB.setUser(r.data['user']);
       await LocalDB.setBalance(r.data['user']['balance'] ?? 0);
-      return r.data['user'];
+      return {'ok': true, 'user': r.data['user']};
+    } on DioException catch (e) {
+      String msg = 'Baglanti hatasi';
+      if (e.response?.statusCode == 401) {
+        final data = e.response?.data;
+        if (data is Map && data['error'] != null) {
+          msg = data['error'].toString();
+        } else {
+          msg = 'Kullanici adi veya sifre yanlis';
+        }
+      } else if (e.response?.statusCode == 400) {
+        final data = e.response?.data;
+        msg = data is Map ? (data['error'] ?? 'Hatali istek').toString()
+                          : 'Hatali istek';
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+                 e.type == DioExceptionType.receiveTimeout) {
+        msg = 'Server cevap vermiyor (timeout)';
+      } else if (e.type == DioExceptionType.connectionError) {
+        msg = 'Server\'a baglanilamiyor. WiFi kontrol et.';
+      }
+      return {'ok': false, 'error': msg};
     } catch (e) {
-      print('login: $e');
-      return null;
+      return {'ok': false, 'error': e.toString()};
     }
   }
 
