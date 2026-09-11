@@ -59,4 +59,20 @@ class AppTheme {
       centerTitle: true,
     ),
   );
+
+  static ThemeData light() => ThemeData(
+    brightness: Brightness.light,
+    scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+    primaryColor: AppColors.gold,
+    colorScheme: const ColorScheme.light(
+      primary: AppColors.gold,
+      secondary: AppColors.orange,
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      foregroundColor: Colors.black,
+      centerTitle: true,
+    ),
+  );
 }
